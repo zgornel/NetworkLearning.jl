@@ -49,5 +49,3 @@ module NetworkLearning
 	include("inlearning.jl")								# In-graph learning
 
 end
-
-
