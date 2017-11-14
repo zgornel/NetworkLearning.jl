@@ -1,4 +1,4 @@
-using LearnBase, NetworkLearning
+using NetworkLearning
 
 if (VERSION > v"0.7-")
 	using Test

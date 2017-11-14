@@ -64,7 +64,7 @@ X = rand(1,Ntrain); 					# Training data
 for tL in [:regression, :classification]		# Learning scenarios 
 	# Initialize data            
 	if tL == :regression
-		ft=x->vec(LearnBase.targets(x))
+		ft=x->vec(x)
 		y = vec(sin.(X)); 
 		Xo = zeros(1,Ntest)
 		
@@ -76,7 +76,7 @@ for tL in [:regression, :classification]		# Learning scenarios
 		fr_train=(x)->sum(x[1],2);
 		fr_exec=(m,x)->sum(x.-m,1)
 	else 
-		ft=x->LearnBase.targets(indmax,x)
+		ft=x->vec(x[1,:])
 		y = rand([1,2,3],Ntrain) # generate 3 classes 
 		C = length(unique(y))
 		Xo = zeros(3,Ntest)
