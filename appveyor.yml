@@ -15,7 +15,7 @@ environment:
 branches:
   only:
     - master
-    - /release-.*/
+
 
 notifications:
   - provider: Email
