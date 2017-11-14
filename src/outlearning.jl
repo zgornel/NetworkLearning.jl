@@ -19,12 +19,6 @@ end
 
 
 
-# Aliases
-#const NetworkLearnerOutOfGraphEmptyAdj{T,U,S,V,R,C,A<:Vector{<:EmptyAdjacency}} = NetworkLearnerOutOfGraph{T,U,S,V,R,C,A}
-#const NetworkLearnerOutOfGraphPartialAdj{T,U,S,V,R,C,A<:Vector{<:PartialAdjacency}} = NetworkLearnerOutOfGraph{T,U,S,V,R,C,A}
-
-
-
 # Printers
 #Base.show(io::IO, m::NetworkLearnerOutOfGraph) = println("Network learner, out-of-graph computation")
 
