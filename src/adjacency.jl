@@ -52,12 +52,33 @@ Base.show(io::IO, va::T) where T<:AbstractVector{S} where S<:AbstractAdjacency =
 
 
 
-# Functions to strip the adjacency infomation (used in training of the NetworkLearner); the methods return a Partial Adjacency
+# Methods that to strip the adjacency infomation (used in training of the NetworkLearner); the methods return a Partial Adjacency
 strip_adjacency(a::MatrixAdjacency{T}) where T <:AbstractMatrix = adjacency(x->T(x))
 strip_adjacency(a::GraphAdjacency{T}) where T<:AbstractGraph = adjacency(x->T(x))
 strip_adjacency(a::ComputableAdjacency{T,S}) where {T,S} = adjacency(a.f)
 strip_adjacency(a::PartialAdjacency) = a
 strip_adjacency(a::EmptyAdjacency) = PartialAdjacency(x->adjacency(x))
+
+
+
+# Functions to strip the adjacency infomation (used in training of the NetworkLearner); the methods return a Partial Adjacency
+update_adjacency!(a::MatrixAdjacency{T}, f_update) where T <:AbstractMatrix = begin
+	sam = size(a.am)
+	f_update(a.am) # f_update should be a closure calling an in-place modifier i.e.  x->foo!(x, args...)
+	@assert size(a.am) == sam "The dimensions of the adjacency matrix cannot change."
+	return a
+end
+
+update_adjacency!(a::GraphAdjacency{T}, f_update) where T<:AbstractGraph = begin
+	n = nv(a.ag)
+	f_update(a.ag) # f_update should be a closure calling an in-place modifier i.e.  x->foo!(x, args...)
+	@assert nv(a.ag) == n "The number of vertices in the adjacency graph cannot change."
+	return a
+end
+
+update_adjacency!(a::ComputableAdjacency{T,S}, f_update) where {T,S} = error("Cannot update a computable adjacency.")
+update_adjacency!(a::PartialAdjacency, args...) = error("Cannot update a partial adjacency.")
+update_adjacency!(a::EmptyAdjacency, args...) = error("Cannot update an empty adjacency.")
 
 
 

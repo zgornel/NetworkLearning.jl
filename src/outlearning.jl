@@ -1,4 +1,6 @@
-# NetworkLearner for out of graph computations 
+#########################
+# Out-of-graph learning #
+#########################
 mutable struct NetworkLearnerOutOfGraph{T,U,S,V,
 				    R<:Vector{<:AbstractRelationalLearner},
 				    C<:AbstractCollectiveInferer,
@@ -20,8 +22,6 @@ end
 
 
 # Printers
-#Base.show(io::IO, m::NetworkLearnerOutOfGraph) = println("Network learner, out-of-graph computation")
-
 Base.show(io::IO, m::NetworkLearnerOutOfGraph) = begin 
 	println("NetworkLearner, $(m.size_in)×$(m.size_out), out-of-graph, $(length(m.Adj)) adjacencies")
 	print(io,"`- local model: "); println(io, m.Ml)

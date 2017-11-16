@@ -1,7 +1,14 @@
 # Network learning
+
+VERSION >= v"0.6" && __precompile__(true)
+
 module NetworkLearning
 	
 	using LearnBase, MLDataPattern, MLLabelUtils, LightGraphs, SimpleWeightedGraphs, Distances
+
+	if VERSION >= v"0.7.0-"
+		using DelimitedFiles:readdlm
+	end
 	
 	export  # Adjacencies
 		AbstractAdjacency, 
@@ -35,6 +42,7 @@ module NetworkLearning
 		transform!, 
 		adjacency,
 		add_adjacency!, 
+		update_adjacency!,
 		strip_adjacency,
 		adjacency_matrix,
 		adjacency_graph
