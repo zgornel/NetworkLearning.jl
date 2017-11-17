@@ -49,7 +49,7 @@ read_citation_data(content_file::String, cites_file::String) = begin
 end
 
 
-
+# Function that grabs the Cora dataset
 grab_cora_data(tmpdir::String="/tmp") = begin
 	
 	DATA_FILE = download("https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz")
@@ -62,3 +62,25 @@ grab_cora_data(tmpdir::String="/tmp") = begin
 	
 	return cora_data
 end
+
+
+# Function that generates an adjacency matrix based on the citing and cited paper indices as well as 
+# the indices in these vectors of the citations that are to be considered
+function generate_partial_adjacency(cited::T, citing::T, useidx::S) where {T<:AbstractVector, S<:AbstractVector}
+
+	# Search which citing/cited papers appear in the subset indices
+	citing_idx = indexin(cited, useidx)
+	cited_idx = indexin(citing, useidx)
+
+	# Construct adjacency
+	n = length(idx)
+	W = zeros(n,n)
+	for i in 1:length(citing)
+	  if citing_idx[i] != 0 && cited_idx[i] != 0
+	      W[citing_idx[i],cited_idx[i]] += 1
+	      W[cited_idx[i],citing_idx[i]] += 1
+	  end
+	end
+	return W
+end
+
