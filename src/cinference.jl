@@ -34,7 +34,8 @@ Base.show(io::IO, vci::T) where T<:AbstractVector{S} where S<:AbstractCollective
 
 
 # Transform methods
-function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S) where {
+function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S, 
+		    update::BitVector=trues(nobs(Xo))) where {
 		M, E, 
 		T<:AbstractMatrix, R<:Vector{<:AbstractRelationalLearner}, 
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
@@ -70,7 +71,7 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 		end
 		
 		# Update estimates
-		Xo[:,:] = β.*fr_exec(Mr, Xr) + (1.0-β).*Xo 
+		Xo[:,update] = β.*fr_exec(Mr, Xr[:,update]) + (1.0-β).*Xo[:,update] 
 		ŷ = f_targets(Xo)
 
 		# Convergence check
@@ -91,14 +92,15 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 	return Xo
 end
 
-function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S) where {
+function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S,
+		    update::BitVector=trues(nobs(Xo))) where {
 		M, E, 
 		T<:AbstractMatrix, R<:Vector{<:AbstractRelationalLearner}, 
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
 	
 	# Initializations
 	n = nobs(Xr)				# number of observations 
-	ordering = collect(1:n)			# observation estimation order 
+	ordering = find(update)			# observation estimation order 
 	maxiter = Ci.maxiter			# maximum number of iterations
 	tol = Ci.tol				# maximum error 
 	f_targets = Ci.tf			# function used to obtain targets
