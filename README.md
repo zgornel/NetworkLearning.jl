@@ -12,8 +12,10 @@ NetworkLearning implements a generic framework for network classification. It co
 provided that appropriate methods for relational learning (i.e. relational variable generation) and collective inference are added. The framework is designed to make as little assumptions as possible on the elements involved in the process.  
 
 Two scenarios for network learning can be distinguished:
-	- *Observation-based learning*, in which the network structure is pertinent to the observations and consequently, estimates (i.e. class probabilities) are associated to the observations; in the estimation process, relational structures can either make use the training data (in-graph learning) or not (out-of-graph learning). For example, in the case of document classifcation, an observation would correspond to a publication that has to be classified into an arbitrary category, given a representation of its local content-based information as well on the its relational information (links to other documents, citations etc.).  
-	- *Entity-based learning*, in which observations are pertinent to one or more abstract entities for which estimates are calculated. In entity-based network learning, observations can modify either the local or relational information of one or more entities.
+
+- *Observation-based learning*, in which the network structure is pertinent to the observations and consequently, estimates (i.e. class probabilities) are associated to the observations; in the estimation process, relational structures can either make use the training data (in-graph learning) or not (out-of-graph learning). For example, in the case of document classifcation, an observation would correspond to a publication that has to be classified into an arbitrary category, given a representation of its local content-based information as well on the its relational information (links to other documents, citations etc.).  
+
+- *Entity-based learning*, in which observations are pertinent to one or more abstract entities for which estimates are calculated. In entity-based network learning, observations can modify either the local or relational information of one or more entities.
 
 So far, the package supports only observation-based learning.
 
@@ -39,8 +41,10 @@ So far, the package supports only observation-based learning.
 
 
 ## TO DO
-	- *entity-based learning* i.e. observations modify properties of abstract entities
-	- Gibbs sampling collective inference
+	
+- *entity-based learning* i.e. observations modify properties of abstract entities
+
+- Gibbs sampling collective inference
 
 
 
