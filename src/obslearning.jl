@@ -1,7 +1,7 @@
-#########################
-# Out-of-graph learning #
-#########################
-mutable struct NetworkLearnerOutOfGraph{T,U,S,V,
+##############################
+# Observation-based learning #
+##############################
+mutable struct NetworkLearnerObs{T,U,S,V,
 				    R<:Vector{<:AbstractRelationalLearner},
 				    C<:AbstractCollectiveInferer,
 				    A<:Vector{<:AbstractAdjacency},
@@ -22,8 +22,8 @@ end
 
 
 # Printers
-Base.show(io::IO, m::NetworkLearnerOutOfGraph) = begin 
-	println("NetworkLearner, $(m.size_in)×$(m.size_out), out-of-graph, $(length(m.Adj)) adjacencies")
+Base.show(io::IO, m::NetworkLearnerObs) = begin 
+	println("NetworkLearner, $(m.size_in)×$(m.size_out), observation based, $(length(m.Adj)) adjacencies")
 	print(io,"`- local model: "); println(io, m.Ml)
 	print(io,"`- relational model: "); println(io, m.Mr)
 	print(io,"`- relational learners: "); println(io, m.RL)
@@ -38,7 +38,7 @@ end
 ####################
 # Training methods #
 ####################
-function fit(::Type{NetworkLearnerOutOfGraph}, X::AbstractMatrix, y::AbstractArray, Adj::A where A<:Vector{<:AbstractAdjacency}, 
+function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj::A where A<:Vector{<:AbstractAdjacency}, 
 		fl_train, fl_exec, fr_train, fr_exec; 
 		priors::Vector{Float64}=getpriors(y), learner::Symbol=:wvrn, inference::Symbol=:rl, 
 		normalize::Bool=true, use_local_data::Bool=true, f_targets::Function=x->targets(indmax,x), 
@@ -78,13 +78,13 @@ function fit(::Type{NetworkLearnerOutOfGraph}, X::AbstractMatrix, y::AbstractArr
 		Ci = RelaxationLabelingInferer(maxiter, tol, f_targets, κ, α)
 	end
 	
-	fit(NetworkLearnerOutOfGraph, X, y, Adj, Rl, Ci, fl_train, fl_exec, fr_train, fr_exec; 
+	fit(NetworkLearnerObs, X, y, Adj, Rl, Ci, fl_train, fl_exec, fr_train, fr_exec; 
 		priors=priors, normalize=normalize, use_local_data=use_local_data)
 end
 
 
 
-function fit(::Type{NetworkLearnerOutOfGraph}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_train::U, fl_exec::U2, fr_train::U3, fr_exec::U4; 
+function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_train::U, fl_exec::U2, fr_train::U3, fr_exec::U4; 
 		priors::Vector{Float64}=getpriors(y), normalize::Bool=true, use_local_data::Bool=true) where {
 			T<:AbstractMatrix, 
 			S<:AbstractArray, 
@@ -147,20 +147,20 @@ function fit(::Type{NetworkLearnerOutOfGraph}, X::T, y::S, Adj::A, Rl::R, Ci::C,
 
 
 	# Step 5: return network learner 
-	return NetworkLearnerOutOfGraph(Ml, fl_exec, Mr, fr_exec, RL, Ci, Adj_s, use_local_data, t_enc, size_in, size_out)
+	return NetworkLearnerObs(Ml, fl_exec, Mr, fr_exec, RL, Ci, Adj_s, use_local_data, t_enc, size_in, size_out)
 end
 
 
 #####################
 # Execution methods #
 #####################
-function transform(model::M, X::T) where {M<:NetworkLearnerOutOfGraph, T<:AbstractMatrix}
+function transform(model::M, X::T) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
 	Xo = zeros(model.size_out, nobs(X))
 	transform!(Xo, model, X)
 	return Xo
 end
 
-function transform!(Xo::S, model::M, X::T) where {M<:NetworkLearnerOutOfGraph, T<:AbstractMatrix, S<:AbstractMatrix}
+function transform!(Xo::S, model::M, X::T) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
 	
 	# Step 0: Make initializations and pre-allocations 	
 	m = size(X,1)										# number of input variables
@@ -197,12 +197,12 @@ end
 
 
 # It may be necessary to add adjacency information to the model, regarding the test data
-function add_adjacency!(model::M, Av::Vector{T}) where {M<:NetworkLearnerOutOfGraph, T<:AbstractAdjacency}
+function add_adjacency!(model::M, Av::Vector{T}) where {M<:NetworkLearnerObs, T<:AbstractAdjacency}
 	@assert length(Av) == length(model.Adj) "New adjacency vector must have a length of $(length(model.Adj))."
 	model.Adj = Av				
 end
 	
-function add_adjacency!(model::M, Av::Vector{T}) where {M<:NetworkLearnerOutOfGraph, T}
+function add_adjacency!(model::M, Av::Vector{T}) where {M<:NetworkLearnerObs, T}
 	@assert length(Av) == length(model.Adj) "Adjacency data vector must have a length of $(length(model.Adj))."
 	model.Adj = adjacency.(Av)
 end

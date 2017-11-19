@@ -1,5 +1,5 @@
-# Tests for out-of-graph learning
-function t_networklearner_out_of_graph()
+# Tests for observation-based learning
+function t_observation_networklearner()
 
 # Test transform methods for relational learners
 LEARNER = [SimpleRN,
@@ -97,7 +97,7 @@ for tL in [:regression, :classification]		# Learning scenarios
 		for rlopt in rlearners  
 			Test.@test try
 				# Train NetworkLearner
-				nlmodel=fit(NetworkLearnerOutOfGraph, X, y, 
+				nlmodel=fit(NetworkLearnerObs, X, y, 
 				       adv, fl_train, fl_exec,fr_train,fr_exec;
 				       learner=rlopt, 
 				       inference=infopt,

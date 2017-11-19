@@ -4,14 +4,14 @@ if (VERSION > v"0.7-")
 	using Test
 end
 
-# Test Out-of-graph learning
-include("t_networklearner_out_of_graph.jl")
-Test.@testset "Network Learning (out-of-graph)" begin 
-	t_networklearner_out_of_graph(); 
+# Test observation-based learning
+include("t_observation_networklearner.jl")
+Test.@testset "Network Learning (observation-based)" begin 
+	t_observation_networklearner(); 
 end
 
-# Test In-graph learning
-include("t_networklearner_in_graph.jl")
-Test.@testset "Network Learning (in-graph)" begin 
-	t_networklearner_in_graph(); 
+# Test entity-based learning
+include("t_entity_networklearner.jl")
+Test.@testset "Network Learning (entity-based)" begin 
+	t_entity_networklearner(); 
 end

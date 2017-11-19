@@ -49,6 +49,7 @@ read_citation_data(content_file::String, cites_file::String) = begin
 end
 
 
+
 # Function that grabs the Cora dataset
 grab_cora_data(tmpdir::String="/tmp") = begin
 	
@@ -62,6 +63,7 @@ grab_cora_data(tmpdir::String="/tmp") = begin
 	
 	return cora_data
 end
+
 
 
 # Function that generates an adjacency matrix based on the citing and cited paper indices as well as 

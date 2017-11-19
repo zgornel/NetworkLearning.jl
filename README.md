@@ -9,18 +9,17 @@ A Julia package for networking learning.
 ## Introduction
 
 NetworkLearning implements a generic framework for network classification. It could in theory be used for other functionality such as regression and density estimation,
-provided that appropriate methods for relational learning (i.e. relational variable generation) and collective inference are added. 
-The framework is designed to make as little assumptions as possible on the elements involved in the process.  
+provided that appropriate methods for relational learning (i.e. relational variable generation) and collective inference are added. The framework is designed to make as little assumptions as possible on the elements involved in the process.  
+
+Two scenarios for network learning can be distinguished:
+	- *Observation-based learning*, in which the network structure is pertinent to the observations and consequently, estimates (i.e. class probabilities) are associated to the observations; in the estimation process, relational structures can either make use the training data (in-graph learning) or not (out-of-graph learning). For example, in the case of document classifcation, an observation would correspond to a publication that has to be classified into an arbitrary category, given a representation of its local content-based information as well on the its relational information (links to other documents, citations etc.).  
+	- *Entity-based learning*, in which observations are pertinent to one or more abstract entities for which estimates are calculated. In entity-based network learning, observations can modify either the local or relational information of one or more entities.
+
+So far, the package supports only observation-based learning.
+
+
 
 ## Features
-
-For now, only out-of-graph learning is supported i.e the training data network structure is not available in the evaluation of test data; a new network structure 
-has to be computed for the tested data - this implies that out-of-graph learning has to be performed in batches in order to be able to calculate the features relating
-to the neighbours of each observation.
-
-- **Types of learning**
-	- out-of-graph learning
-	- **(TODO)** in-graph learning
 
 - **Relational learners**
 	- simple relational neighbour
@@ -31,8 +30,20 @@ to the neighbours of each observation.
 - **Collective inference**
 	- relaxation labeling
 	- collective classification
-	- **(TODO)** gibbs sampling
- 
+
+- **Adjacency strucures**
+	- matrices
+	- graphs
+	- tuples containing functions and data from which adjacency matrices or graphs can be computed
+
+
+
+## TO DO
+	- *entity-based learning* i.e. observations modify properties of abstract entities
+	- Gibbs sampling collective inference
+
+
+
 ## Documentation
 
 The documentation is provided in Julia's native docsystem. 
