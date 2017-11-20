@@ -154,13 +154,13 @@ end
 #####################
 # Execution methods #
 #####################
-function transform(model::M, X::T) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
+function transform(model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
 	Xo = zeros(model.size_out, nobs(X))
-	transform!(Xo, model, X)
+	transform!(Xo, model, X, update)
 	return Xo
 end
 
-function transform!(Xo::S, model::M, X::T) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
+function transform!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
 	
 	# Step 0: Make initializations and pre-allocations 	
 	m = size(X,1)										# number of input variables
@@ -181,13 +181,12 @@ function transform!(Xo::S, model::M, X::T) where {M<:NetworkLearnerObs, T<:Abstr
 
 
 	# Step 1: Apply local model, initialize output
-	Xl = model.fl_exec(model.Ml, X)
-	@assert size(Xo) == size(Xl) "Local model output size is $(size(Xl)) and NetworkLearner expected output size $(size(Xo))." 	
-	Xo[:] = Xl 
-
+	Xl = model.fl_exec(model.Ml, X[:,update])
+	@assert size(Xo,1) == size(Xl,1) "Local model outputs $(size(Xl,1)) estimates/obs, the output indicates $(size(Xo,1))." 	
+	Xo[:,update] = Xl 
 
 	# Step 2: Apply collective inference
-	transform!(Xo, model.Ci, model.Mr, model.fr_exec, model.RL, model.Adj, offset, Xr)	
+	transform!(Xo, model.Ci, model.Mr, model.fr_exec, model.RL, model.Adj, offset, Xr, update)	
 	
 
 	# Step 3: Return output estimates
