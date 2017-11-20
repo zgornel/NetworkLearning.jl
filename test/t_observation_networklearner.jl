@@ -93,6 +93,7 @@ for tL in [:regression, :classification]		# Learning scenarios
 	amv = sparse.(full.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj])));
 	adv = adjacency.(amv); 
 
+	nlmodel=[]
 	for infopt in inferences
 		for rlopt in rlearners  
 			Test.@test try
