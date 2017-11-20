@@ -10,6 +10,11 @@ module NetworkLearning
 		using DelimitedFiles:readdlm
 	end
 	
+	# Verbosity level, used for debugging: 
+	# 0 - off, 1 - minimal, 2 - normal (all messages) 
+	global const VERBOSE = 2 
+
+	# Exports
 	export  # Adjacencies
 		AbstractAdjacency, 
 		MatrixAdjacency,

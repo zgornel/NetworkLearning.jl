@@ -86,3 +86,12 @@ function generate_partial_adjacency(cited::T, citing::T, useidx::S) where {T<:Ab
 	return W
 end
 
+macro print_verbose(level, message)
+	esc( :(
+	 	NetworkLearning.VERBOSE >= 0 && 
+	 	NetworkLearning.VERBOSE >= $level && 
+	 	print_with_color(:cyan, "[Network Learning] $($message)")
+		)
+	)
+end
+
