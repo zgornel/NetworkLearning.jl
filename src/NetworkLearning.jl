@@ -39,7 +39,6 @@ module NetworkLearning
 		# Network learners
 	 	AbstractNetworkLearner,
 		NetworkLearnerObs,
-		NetworkLearnerEnt,	
 
 		# Functionality	
 		fit, 
@@ -60,6 +59,5 @@ module NetworkLearning
 	include("rlearners.jl")									# Relational learners
 	include("cinference.jl")								# Collective inference algorithms		
 	include("obslearning.jl")								# Observation-based learning
-	include("entlearning.jl")								# Entity-based learning
 
 end

@@ -9,9 +9,3 @@ include("t_observation_networklearner.jl")
 Test.@testset "Network Learning (observation-based)" begin 
 	t_observation_networklearner(); 
 end
-
-# Test entity-based learning
-include("t_entity_networklearner.jl")
-Test.@testset "Network Learning (entity-based)" begin 
-	t_entity_networklearner(); 
-end
