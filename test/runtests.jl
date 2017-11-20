@@ -1,4 +1,6 @@
-using NetworkLearning, LightGraphs, SimpleWeightedGraphs
+using NetworkLearning
+using LightGraphs: Graph 
+using SimpleWeightedGraphs: SimpleWeightedGraph
 
 if (VERSION > v"0.7-")
 	using Test

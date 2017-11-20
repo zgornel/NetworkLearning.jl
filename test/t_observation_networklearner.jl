@@ -62,8 +62,8 @@ Test.@test P_Adj isa PartialAdjacency
 Test.@test P_Adj.f == f(n)
 Test.@test adjacency(P_Adj, data).am == A
 
-Adj2 = adjacency(Adj)
-Test.@test Adj2 == Adj
+A_Adj2 = adjacency(A_Adj)
+Test.@test A_Adj2 == A_Adj
 
 Test.@test adjacency(strip_adjacency(A_Adj),A).am == A_Adj.am
 Test.@test adjacency(strip_adjacency(G_Adj),A).ag == G_Adj.ag
@@ -74,7 +74,6 @@ Test.@test adjacency_graph(A_Adj) == G
 Test.@test adjacency_graph(G_Adj) == G
 Test.@test adjacency_graph(Gw_Adj) == Gw
 Test.@test adjacency_graph(C_Adj) == G
-
 
 Test.@test adjacency_matrix(A_Adj) == Ai
 Test.@test adjacency_matrix(G_Adj) == Ai
@@ -147,6 +146,7 @@ rlearners = [:rn, :wrn, :bayesrn, :cdrn]		# Relational learners
 nAdj = 2						# Number of adjacencies to generate	
 X = rand(1,Ntrain); 					# Training data
 
+nlmodel=[]
 for tL in [:regression, :classification]		# Learning scenarios 
 	# Initialize data            
 	if tL == :regression
@@ -179,7 +179,6 @@ for tL in [:regression, :classification]		# Learning scenarios
 	amv = sparse.(full.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj])));
 	adv = adjacency.(amv); 
 
-	nlmodel=[]
 	for infopt in inferences
 		for rlopt in rlearners  
 			Test.@test try
