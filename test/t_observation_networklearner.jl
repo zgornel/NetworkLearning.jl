@@ -1,7 +1,91 @@
 # Tests for observation-based learning
 function t_observation_networklearner()
 
-# Test transform methods for relational learners
+########################################
+# Test adjacency-related functionality #
+########################################
+
+# Define adjacency data
+A = [							# adjacency matrix		
+ 0.0  0.0  1.0  1.0  0.0;
+ 0.0  0.0  1.0  0.0  0.0;
+ 1.0  1.0  0.0  1.0  1.0;
+ 1.0  0.0  1.0  0.0  0.0;
+ 0.0  0.0  1.0  0.0  0.0;
+]
+
+Ai = Int.(A)
+G = Graph(Ai)
+
+Gw = SimpleWeightedGraph(A)
+
+rows,cols = findn(A)
+data = [(i,j) for (i,j) in zip(rows,cols)]		# edges of A
+n = 5							# number of vertices
+f(n::Int, T=Int) = (data::Vector{Tuple{Int,Int}})->begin
+	m = zeros(T,n,n)
+	for t in data
+		m[t[1],t[2]] = one(T)
+	end
+	return m
+end
+
+# Test functionality
+Test.@test adjacency() isa EmptyAdjacency
+Test.@test adjacency(nothing) isa EmptyAdjacency
+
+A_Adj = adjacency(Ai)
+Test.@test A_Adj isa MatrixAdjacency
+Test.@test A_Adj.am == A
+
+G_Adj = adjacency(G)
+Test.@test G_Adj isa GraphAdjacency
+Test.@test G_Adj.ag == G
+
+Gw_Adj = adjacency(Gw)
+Test.@test Gw_Adj isa GraphAdjacency
+Test.@test Gw_Adj.ag == Gw
+
+
+C_Adj = adjacency(f(n), data)
+Test.@test C_Adj isa ComputableAdjacency
+Test.@test C_Adj.f == f(n)
+Test.@test C_Adj.data == data 
+
+C2_Adj = adjacency((f(n), data))
+Test.@test C2_Adj isa ComputableAdjacency
+Test.@test C2_Adj.f == f(n)
+Test.@test C2_Adj.data == data 
+
+P_Adj = adjacency(f(n))
+Test.@test P_Adj isa PartialAdjacency
+Test.@test P_Adj.f == f(n)
+Test.@test adjacency(P_Adj, data).am == A
+
+Adj2 = adjacency(Adj)
+Test.@test Adj2 == Adj
+
+Test.@test adjacency(strip_adjacency(A_Adj),A).am == A_Adj.am
+Test.@test adjacency(strip_adjacency(G_Adj),A).ag == G_Adj.ag
+Test.@test adjacency(strip_adjacency(C_Adj),data).am == A_Adj.am
+Test.@test adjacency(strip_adjacency(P_Adj),data).am == A_Adj.am
+
+Test.@test adjacency_graph(A_Adj) == G
+Test.@test adjacency_graph(G_Adj) == G
+Test.@test adjacency_graph(Gw_Adj) == Gw
+Test.@test adjacency_graph(C_Adj) == G
+
+
+Test.@test adjacency_matrix(A_Adj) == Ai
+Test.@test adjacency_matrix(G_Adj) == Ai
+Test.@test adjacency_matrix(Gw_Adj) == A
+Test.@test adjacency_matrix(C_Adj) == A
+
+
+
+######################################################
+# Test fit/transform methods for relational learners #
+######################################################
 LEARNER = [SimpleRN,
 	   WeightedRN,
 	   BayesRN,
@@ -53,7 +137,9 @@ end
 
 
 
-# NetworkLearner tests
+#########################################
+# Test observation-based NetworkLearner #
+#########################################
 Ntrain = 100						# Number of training observations
 Ntest = 10						# Number of testing observations					
 inferences = [:ic, :rl]					# Collective inferences
@@ -123,12 +209,16 @@ for tL in [:regression, :classification]		# Learning scenarios
 			end
 		end
 	end
-	Test.@test try
-		show(nlmodel)
-		true
-	catch
-		false
-	end
 end
+
+
+
+Test.@test try
+	show(nlmodel)
+	true
+catch
+	false
+end
+
 
 end
