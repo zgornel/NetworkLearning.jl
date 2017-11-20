@@ -53,15 +53,16 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 	ŷₗ = f_targets(Xo)									# Obtain first the labels corresponding to the local model
 	ŷ = ŷₗ											#   and initialize the current estimates
 	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
+	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
+	Xrᵢ = zeros(size_out,n)									# Initialize temporary storage	
 
 	# Iterate
-	Xrᵢ = zeros(size_out,n)									# Initialize temporary storage	
 	for it in 1:maxiter
 		β = β * α									# Update learning rate
 		copy!(ŷₒ, ŷ);									# Update 'previous iteration' estimates 
 		
 		# Obtain relational dataset for the current iteration
-		@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,Adj))		
+		@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 		
 			# Apply relational learner
 			transform!(Xrᵢ, RLᵢ, Aᵢ, Xo, ŷ)
@@ -99,38 +100,38 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
 	
 	# Initializations
-	n = nobs(Xr)				# number of observations 
-	ordering = find(update)			# observation estimation order 
-	maxiter = Ci.maxiter			# maximum number of iterations
-	tol = Ci.tol				# maximum error 
-	f_targets = Ci.tf			# function used to obtain targets
-	size_out = size(Xo,1)			# ouput size (corresponds to the number of classes)
-	Xl = copy(Xo) 				# local estimates	
-	ŷₗ = f_targets(Xo)			# Obtain first the labels corresponding to the local model
-	ŷ = ŷₗ					#   and initialize the current estimates
-	ŷₒ = similar(ŷ)				#   and the 'previous' iteration estimates
+	n = nobs(Xr)										# number of observations 
+	ordering = [i:i for i in find(update)]							# observation estimation order 
+	maxiter = Ci.maxiter									# maximum number of iterations
+	tol = Ci.tol										# maximum error 
+	f_targets = Ci.tf									# function used to obtain targets
+	size_out = size(Xo,1)									# ouput size (corresponds to the number of classes)
+	Xl = copy(Xo)										# local estimates	
+	ŷₗ = f_targets(Xo)									# Obtain first the labels corresponding to the local model
+	ŷ = ŷₗ											#   and initialize the current estimates
+	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
+	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
+	Xrᵢⱼ = zeros(size_out,1)								# Initialize temporary storage	
 	
 	# Iterate
-	Xrᵢⱼ = zeros(size_out,1)		# Initialize temporary storage	
 	for it in 1:maxiter	
-		shuffle!(ordering)		# Randomize observation order
-		copy!(ŷₒ, ŷ);			# Update 'previous iteration' estimates 
-
+		shuffle!(ordering)								# Randomize observation order
+		copy!(ŷₒ, ŷ);									# Update 'previous iteration' estimates 
+		
 		# Loop over observations and obtain individual estimates
-		for j in ordering		
+		for rⱼ in ordering		
 			
 			# Get data subsets pertinent to the current observation 
-			rⱼ = j:j
 			Xrⱼ = datasubset(Xr, rⱼ)
 			Xoⱼ = datasubset(Xo, rⱼ)
 			ŷⱼ = datasubset(ŷ, rⱼ)
 
 			# Obtain relational data for the current observation
-			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,Adj))		
+			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 
 				# Apply relational learner
-				transform!(Xrᵢⱼ, RLᵢ, Aᵢ, Xo, ŷ, obs=rⱼ)
-				
+				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
+												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
 				Xrⱼ[offset+(i-1)*size_out+1 : offset+i*size_out,:] = Xrᵢⱼ
 			end

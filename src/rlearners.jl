@@ -75,15 +75,15 @@ end
 
 
 # Transform methods
-function transform!(Xr::T, Rl::R, Ai::AbstractAdjacency, X::S, ŷ::U; obs::UnitRange{Int}=1:nobs(X)) where {
+function transform!(Xr::T, Rl::R, Ai::AbstractAdjacency, X::S, ŷ::U) where {
 		R<:AbstractRelationalLearner, T<:AbstractMatrix, S<:AbstractVector, U<:AbstractVector}
-	Am = adjacency_matrix(Ai)[:,obs]
+	Am = adjacency_matrix(Ai)
 	transform!(Xr, Rl, Am, X', ŷ)
 end
 
-function transform!(Xr::T, Rl::R, Ai::AbstractAdjacency, X::S, ŷ::U; obs::UnitRange{Int}=1:nobs(X)) where {
+function transform!(Xr::T, Rl::R, Ai::AbstractAdjacency, X::S, ŷ::U) where {
 		R<:AbstractRelationalLearner, T<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}
-	Am = adjacency_matrix(Ai)[:,obs]
+	Am = adjacency_matrix(Ai)
 	transform!(Xr, Rl, Am, X, ŷ)
 end
 
