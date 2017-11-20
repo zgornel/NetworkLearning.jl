@@ -5,6 +5,8 @@
 # The state of the network learner: it is defined by estimates for all nodes
 # and a mask that specifies which of the estimates are to be update (in case the training
 # data is used as well
+
+#=
 mutable struct NetworkLearnerState{T<:AbstractArray}
 	estimates::T
 	update::BitVector
@@ -219,3 +221,5 @@ function transform!(Xo::S, model::M, X::T) where {M<:NetworkLearnerEnt, T<:Abstr
 	# Step 3: Return output estimates
 	return Xo
 end
+
+=#
