@@ -79,15 +79,15 @@ for tL in [:regression, :classification]		# Learning scenarios
 		ft=x->vec(x[1,:])
 		y = rand([1,2,3],Ntrain) # generate 3 classes 
 		C = length(unique(y))
-		Xo = zeros(3,Ntest)
+		Xo = zeros(C,Ntest)
 		
 		# Train and test methods for local model
-		fl_train = (x)->zeros(3,1);
+		fl_train = (x)->zeros(C,1);
 		fl_exec=(m,x)->abs.(x.-m);
 		
 		# Train and test methods for relational model
 		fr_train=(x)->sum(x[1],2);
-		fr_exec=(m,x)->rand(3,size(x,2))
+		fr_exec=(m,x)->rand(C,size(x,2))
 	end
 
 	amv = sparse.(full.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj])));
@@ -101,7 +101,7 @@ for tL in [:regression, :classification]		# Learning scenarios
 				       adv, fl_train, fl_exec,fr_train,fr_exec;
 				       learner=rlopt, 
 				       inference=infopt,
-				       use_local_data=true,
+				       use_local_data=rand(Bool),
 				       f_targets=ft,
 				       normalize=false, maxiter = 5
 				)
@@ -121,6 +121,12 @@ for tL in [:regression, :classification]		# Learning scenarios
 				false
 			end
 		end
+	end
+	Test.@test try
+		show(nlmodel)
+		true
+	catch
+		false
 	end
 end
 
