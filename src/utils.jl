@@ -90,7 +90,7 @@ macro print_verbose(level, message)
 	esc( :(
 	 	NetworkLearning.VERBOSE >= 0 && 
 	 	NetworkLearning.VERBOSE >= $level && 
-	 	print_with_color(:cyan, "[Network Learning] $($message)")
+	 	print_with_color(:cyan, "[Network Learning] $($message)\n")
 		)
 	)
 end

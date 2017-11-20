@@ -12,7 +12,7 @@ module NetworkLearning
 	
 	# Verbosity level, used for debugging: 
 	# 0 - off, 1 - minimal, 2 - normal (all messages) 
-	global const VERBOSE = 2 
+	global const VERBOSE = 0 
 
 	# Exports
 	export  # Adjacencies
@@ -50,14 +50,15 @@ module NetworkLearning
 		update_adjacency!,
 		strip_adjacency,
 		adjacency_matrix,
-		adjacency_graph
+		adjacency_graph,
+		@print_verbose
 	
 	abstract type AbstractNetworkLearner end
 	
+	include("utils.jl")									# Small utility functions
 	include("adjacency.jl") 								# Adjacency-related structures 
 	include("rlearners.jl")									# Relational learners
 	include("cinference.jl")								# Collective inference algorithms		
-	include("utils.jl")									# Small utility functions
 	include("obslearning.jl")								# Observation-based learning
 	include("entlearning.jl")								# Entity-based learning
 

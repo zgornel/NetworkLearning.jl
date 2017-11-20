@@ -117,12 +117,14 @@ function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_tra
 
 
 	# Step 1: train and execute local model
+	@print_verbose 2 "Training and applying local model ..."
 	Dl = (X,yₑ)
 	Ml = fl_train(Dl); 
 	Xl = fl_exec(Ml,X);
 	
 
 	# Step 2: Get relational variables by training and executing the relational learner 
+	@print_verbose 2 "Calculating relational variables ..."
 	RL = [fit(Rl, Aᵢ, Xl, yₑ; priors=priors, normalize=normalize) for Aᵢ in Adj]		# Train relational learners				
 
 	Xrᵢ = zeros(size_out,n)									# Initialize temporary storage	
@@ -137,6 +139,7 @@ function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_tra
 	
 
 	# Step 3 : train relational model 
+	@print_verbose 2 "Training relational model ..."
 	Mr = fr_train((Xr,yₑ))
 
 	# Step 4: remove adjacency data 
@@ -147,6 +150,7 @@ function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_tra
 
 
 	# Step 5: return network learner 
+	@print_verbose 2 "Done."
 	return NetworkLearnerObs(Ml, fl_exec, Mr, fr_exec, RL, Ci, Adj_s, use_local_data, t_enc, size_in, size_out)
 end
 
@@ -181,15 +185,18 @@ function transform!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X))) whe
 
 
 	# Step 1: Apply local model, initialize output
+	@print_verbose 2 "Executing local model ..."
 	Xl = model.fl_exec(model.Ml, X[:,update])
 	@assert size(Xo,1) == size(Xl,1) "Local model outputs $(size(Xl,1)) estimates/obs, the output indicates $(size(Xo,1))." 	
 	Xo[:,update] = Xl 
 
 	# Step 2: Apply collective inference
+	@print_verbose 2 "Collective inference ..."
 	transform!(Xo, model.Ci, model.Mr, model.fr_exec, model.RL, model.Adj, offset, Xr, update)	
 	
 
 	# Step 3: Return output estimates
+	@print_verbose 2 "Done."
 	return Xo
 end
 

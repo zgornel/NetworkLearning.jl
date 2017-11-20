@@ -77,16 +77,17 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 
 		# Convergence check
 		if isequal(ŷ,ŷₒ) || mean(abs.(ŷ-ŷₒ))<=tol
-			# println("Convergence reached at iteration $it.")
+			@print_verbose 1 "Convergence reached at iteration $it."
 			break
 		else
-			# println("Iteration $it: $(sum(ŷ.!= ŷₒ)) estimates changed")
+			@print_verbose 2 "\tIteration $it: $(sum(ŷ.!= ŷₒ)) estimates changed"
 	   	end
 		
 		# Replace non-converging estimates with local estimates
 		if (it == maxiter) && (maxiter != 1)
 			_nc = ŷ.!=ŷₒ 		# positions of non-converging estimates
 			datasubset(Xo, _nc)[:] = datasubset(Xl, _nc)[:]
+			@print_verbose 1 "Maximum level of iterations reached, $(sum(_nc)) estimates did not converge."
 		end
 	end
 	
@@ -143,16 +144,17 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E
 
 		# Convergence check
 		if isequal(ŷ,ŷₒ) || mean(abs.(ŷ-ŷₒ))<=tol
-			# println("Convergence reached at iteration $it.")
+			@print_verbose 1 "Convergence reached at iteration $it."
 			break
 		else
-			# println("Iteration $it: $(sum(ŷ.!= ŷₒ)) estimates changed")
+			@print_verbose 2 "\tIteration $it: $(sum(ŷ.!= ŷₒ)) estimates changed"
 	   	end
 
 		# Replace non-converging estimates with local estimates
 		if (it == maxiter) && (maxiter != 1)
 			_nc = ŷ.!=ŷₒ 		# positions of non-converging estimates
 			datasubset(Xo, _nc)[:] = datasubset(Xl, _nc)[:]
+			@print_verbose 1 "Maximum level of iterations reached, $(sum(_nc)) estimates did not converge."
 		end
 	end
 	
