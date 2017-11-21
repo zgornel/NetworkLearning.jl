@@ -136,25 +136,25 @@ println("\tAverage error (in-graph):", mean(targets(indmax,yts).!=targets(indmax
 
 The output of the above code is:
 ```julia
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  163k  100  163k    0     0   163k      0  0:00:01  0:00:01 --:--:--  101k
-cora/
-cora/README
-cora/cora.content
-cora/cora.cites
-INFO: Training ...
-INFO: Predicting (out-of-graph) ...
-	L2 loss (out-of-graph):0.11059675847236224
-	Average error (out-of-graph):0.45790251107828656
-INFO: Predicting (in-graph) ...
-	L2 loss (in-graph):0.04396139067718938
-	Average error (in-graph):0.17134416543574593
+#   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+#                                  Dload  Upload   Total   Spent    Left  Speed
+# 100  163k  100  163k    0     0   163k      0  0:00:01  0:00:01 --:--:--  101k
+# cora/
+# cora/README
+# cora/cora.content
+# cora/cora.cites
+# INFO: Training ...
+# INFO: Predicting (out-of-graph) ...
+#	L2 loss (out-of-graph):0.11059675847236224
+#	Average error (out-of-graph):0.45790251107828656
+# INFO: Predicting (in-graph) ...
+# 	L2 loss (in-graph):0.04396139067718938
+#	Average error (in-graph):0.17134416543574593
 ```
 
 
 
-## TO DO
+## To do
 	
 - *entity-based learning* i.e. observations modify properties of abstract entities
 
