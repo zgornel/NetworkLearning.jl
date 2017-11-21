@@ -176,7 +176,7 @@ for tL in [:regression, :classification]		# Learning scenarios
 		fr_exec=(m,x)->rand(C,size(x,2))
 	end
 
-	amv = sparse.(full.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj])));
+	amv = sparse.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj]));
 	adv = adjacency.(amv); 
 
 	for infopt in inferences
@@ -196,12 +196,12 @@ for tL in [:regression, :classification]		# Learning scenarios
 				Xtest = rand(1,Ntest)
 
 				# Add adjacency
-				amv_t = sparse.(full.(Symmetric.([sprand(Float64, Ntest,Ntest, 0.7) for i in 1:nAdj])));
+				amv_t = sparse.(Symmetric.([sprand(Float64, Ntest,Ntest, 0.7) for i in 1:nAdj]));
 				adv_t = adjacency.(amv_t); 
 				add_adjacency!(nlmodel, adv_t)
 				
 				#Run NetworkLearner
-				transform!(Xo, nlmodel, Xtest);
+				predict!(Xo, nlmodel, Xtest);
 				true
 			catch
 				false
