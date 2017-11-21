@@ -1,6 +1,9 @@
 ##############################
 # Observation-based learning #
 ##############################
+"""
+Observation-based netwok learning model type.
+"""
 mutable struct NetworkLearnerObs{T,U,S,V,
 				    R<:Vector{<:AbstractRelationalLearner},
 				    C<:AbstractCollectiveInferer,
@@ -38,6 +41,9 @@ end
 ####################
 # Training methods #
 ####################
+"""
+Training method for the network learning framework.
+"""
 function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj::A where A<:Vector{<:AbstractAdjacency}, 
 		fl_train, fl_exec, fr_train, fr_exec; 
 		priors::Vector{Float64}=getpriors(y), learner::Symbol=:wvrn, inference::Symbol=:rl, 
@@ -83,7 +89,9 @@ function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj
 end
 
 
-
+"""
+Training method for the network learning framework. This method should not be called directly.
+"""
 function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_train::U, fl_exec::U2, fr_train::U3, fr_exec::U4; 
 		priors::Vector{Float64}=getpriors(y), normalize::Bool=true, use_local_data::Bool=true) where {
 			T<:AbstractMatrix, 
@@ -158,12 +166,18 @@ end
 #####################
 # Execution methods #
 #####################
+"""
+Prediction method for the network learning framework.
+"""
 function predict(model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
 	Xo = zeros(model.size_out, nobs(X))
 	predict!(Xo, model, X, update)
 	return Xo
 end
 
+"""
+In-place prediction method for the network learning framework.
+"""
 function predict!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
 	
 	# Step 0: Make initializations and pre-allocations 	
@@ -203,6 +217,9 @@ end
 
 
 # It may be necessary to add adjacency information to the model, regarding the test data
+"""
+Function that adds or creates and then adds adjacency objects to a network learning model.
+"""
 function add_adjacency!(model::M, Av::Vector{T}) where {M<:NetworkLearnerObs, T<:AbstractAdjacency}
 	@assert length(Av) == length(model.Adj) "New adjacency vector must have a length of $(length(model.Adj))."
 	model.Adj = Av				

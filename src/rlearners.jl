@@ -1,20 +1,44 @@
 # Types
 abstract type AbstractRelationalLearner end
 
+"""
+Simple relational neighbour learner. Counts for 
+each vertex how many neighbours from each class
+are in its neighbourhood.
+"""
 struct SimpleRN <: AbstractRelationalLearner 
 	normalize::Bool
 end
 
+"""
+Weighted relational neighbour learner. For each
+vertex, it sums up the estimates from neighboring
+vertices. 
+"""
 struct WeightedRN <: AbstractRelationalLearner 
 	normalize::Bool
 end
 
+"""
+Naive-Bayes relational neighbour learner (trainable). 
+Calculates neighbourhood likelihoods (i.e. given a vertex's class, 
+the class distribution in its neighbourhood)
+and uses the resulting information to compute class
+estimates for each vertex using a Bayesian approach.
+"""
 struct BayesRN <: AbstractRelationalLearner 
 	priors::Vector{Float64}
 	normalize::Bool
 	LM::Matrix{Float64}	# likelihood matrix (class-conditional neighbourhood likelihoods)
 end
 
+"""
+Class-distribution relational neighbour (trainable).
+Claculates a reference vector (RV) for each class (using
+the vertex neighbourhood information) and compares
+vertices to the reference vectors corresponding to each
+class using a similarity measure.
+"""
 struct ClassDistributionRN <: AbstractRelationalLearner
 	normalize::Bool
 	RV::Matrix{Float64}
@@ -95,7 +119,7 @@ function transform!(Xr::T, Rl::SimpleRN, Am::M, X::S, ŷ::U) where {
 	Xr ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum	
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr,1)
+		Xr ./= sum(Xr.+eps(),1)
 	end
 	return Xr
 end
@@ -106,7 +130,7 @@ function transform!(Xr::T, Rl::WeightedRN, Am::M, X::S, ŷ::U) where {
 	Xr ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr,1)
+		Xr ./= sum(Xr.+eps(),1)
 	end
 	return Xr
 end
@@ -138,7 +162,7 @@ function transform!(Xr::T, Rl::ClassDistributionRN, Am::M, X::S, ŷ::U) where {
 	Distances.pairwise!(Xr, d, Rl.RV, Xtmp)	
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr,1)
+		Xr ./= sum(Xr.+eps(),1)
 	end
 
 	return Xr

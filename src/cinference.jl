@@ -1,6 +1,10 @@
 # Types
 abstract type AbstractCollectiveInferer end
 
+"""
+Relaxation labeling object. Stores the parameters necessary for
+the algorithm.
+"""
 struct RelaxationLabelingInferer <: AbstractCollectiveInferer 
 	maxiter::Int
 	tol::Float64
@@ -9,12 +13,19 @@ struct RelaxationLabelingInferer <: AbstractCollectiveInferer
 	α::Float64
 end
 
+"""
+Iterative classification object. Stores the parameters necessary for
+the algorithm.
+"""
 struct IterativeClassificationInferer <: AbstractCollectiveInferer 
 	maxiter::Int
 	tol::Float64
 	tf::Function
 end
-
+"""
+Gibbs sapmpling object. Stores the parameters necessary for
+the algorithm.
+"""
 struct GibbsSamplingInferer <: AbstractCollectiveInferer 
 	maxiter::Int
 	tol::Float64
@@ -166,6 +177,6 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 		T<:AbstractMatrix, R<:Vector{<:AbstractRelationalLearner}, 
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
 	
-	# warn("Gibbs sampling not implemented, returning input (local model) estimates.")
+	warn("Gibbs sampling not implemented, returning input (local model) estimates.")
 	return Xo
 end
