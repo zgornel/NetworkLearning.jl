@@ -22,6 +22,7 @@ struct IterativeClassificationInferer <: AbstractCollectiveInferer
 	tol::Float64
 	tf::Function
 end
+
 """
 Gibbs sapmpling object. Stores the parameters necessary for
 the algorithm.
