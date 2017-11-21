@@ -136,6 +136,18 @@ end
 
 
 
+###################################
+# Tests for the utility functions #
+###################################
+cited =  [1,1,2,2,3,3,4,6,5,6]
+citing = [2,3,1,5,2,6,7,1,2,3]
+useidx = [1,2,6]
+
+# 1 and 2 cite each other (edge weight of 2), 1 cites 6 one time (edge weight of 1)
+Test.@test NetworkLearning.generate_partial_adjacency(cited,citing,useidx) == [0.0 2 1; 2 0 0; 1 0 0]
+ 
+
+
 #########################################
 # Test observation-based NetworkLearner #
 #########################################
@@ -201,7 +213,8 @@ for tL in [:regression, :classification]		# Learning scenarios
 				add_adjacency!(nlmodel, adv_t)
 				
 				#Run NetworkLearner
-				predict!(Xo, nlmodel, Xtest);
+				predict!(Xo, nlmodel, Xtest); # in-place
+				predict(nlmodel, Xtest);      # creates output matrix	
 				true
 			catch
 				false

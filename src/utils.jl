@@ -75,7 +75,7 @@ function generate_partial_adjacency(cited::T, citing::T, useidx::S) where {T<:Ab
 	cited_idx = indexin(citing, useidx)
 
 	# Construct adjacency
-	n = length(idx)
+	n = length(useidx)
 	W = zeros(n,n)
 	for i in 1:length(citing)
 	  if citing_idx[i] != 0 && cited_idx[i] != 0
