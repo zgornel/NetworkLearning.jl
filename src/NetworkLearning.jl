@@ -42,6 +42,8 @@ module NetworkLearning
 
 		# Functionality	
 		fit, 
+		predict, 
+		predict!,
 		transform, 
 		transform!, 
 		adjacency,

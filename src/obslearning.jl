@@ -158,13 +158,13 @@ end
 #####################
 # Execution methods #
 #####################
-function transform(model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
+function predict(model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
 	Xo = zeros(model.size_out, nobs(X))
-	transform!(Xo, model, X, update)
+	predict!(Xo, model, X, update)
 	return Xo
 end
 
-function transform!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
+function predict!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
 	
 	# Step 0: Make initializations and pre-allocations 	
 	m = size(X,1)										# number of input variables
