@@ -1,5 +1,5 @@
 using NetworkLearning
-using LightGraphs: Graph 
+using LightGraphs: Graph,add_edge! 
 using SimpleWeightedGraphs: SimpleWeightedGraph
 
 if (VERSION > v"0.7-")

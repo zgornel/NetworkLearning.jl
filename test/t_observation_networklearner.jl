@@ -80,6 +80,25 @@ Test.@test adjacency_matrix(G_Adj) == Ai
 Test.@test adjacency_matrix(Gw_Adj) == A
 Test.@test adjacency_matrix(C_Adj) == A
 
+# Test update_adjacency
+A = [0 1 0; 1 0 0; 0 0 0]
+Adj_m = adjacency(A)
+update_function_m!(X,x,y) = begin
+	X[x,y] += 1
+	X[y,x] += 1
+	return X
+end
+f_update_m(x,y) = X->update_function_m!(X,x,y)
+for i in 1:3
+	update_adjacency!(Adj_m, f_update_m(1,3))
+end
+Test.@test adjacency_matrix(Adj_m) == [0 1 3; 1 0 0; 3 0  0]
+
+Adj_g = adjacency(Graph(A))
+f_update_g(x,y) = G->add_edge!(G,x,y)
+update_adjacency!(Adj_g, f_update_g(1,3))
+Test.@test Matrix(adjacency_matrix(Adj_g)) == [0 1 1; 1 0 0; 1 0  0]
+
 
 
 ######################################################
