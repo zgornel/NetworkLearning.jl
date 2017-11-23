@@ -26,7 +26,7 @@ end
 
 # Printers
 Base.show(io::IO, m::NetworkLearnerObs) = begin 
-	println("NetworkLearner, $(m.size_in)×$(m.size_out), observation based, $(length(m.Adj)) adjacencies")
+	println(io,"NetworkLearner, I/O size $(m.size_in)×$(m.size_out), observation based")
 	print(io,"`- local model: "); println(io, m.Ml)
 	print(io,"`- relational model: "); println(io, m.Mr)
 	print(io,"`- relational learners: "); println(io, m.RL)

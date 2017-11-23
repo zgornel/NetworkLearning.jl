@@ -53,6 +53,7 @@ module NetworkLearning
 		fit, 
 		predict, 
 		predict!,
+		infer!,
 		transform, 
 		transform!, 
 		adjacency,
