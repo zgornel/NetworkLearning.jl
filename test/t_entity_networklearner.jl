@@ -11,56 +11,42 @@ nAdj = 2						# Number of adjacencies to generate
 X = rand(1,N); 						# Training data
 
 nlmodel=[]
-for tL in [:regression, :classification]		# Learning scenarios 
-	# Initialize data            
-	if tL == :regression
-		ft=x->vec(x)
-		Xo = rand(1,N)
-		update = trues(N)
 
-		# Train and test methods for relational model
-		fr_train=(x)->sum(x[1],2);
-		fr_exec=(m,x)->sum(x.-m,1)
-	else 
-		C = 3
-		ft=x->vec(x[1,:])
-		Xo = rand(C,N)
-		update = trues(N)
-		
-		# Train and test methods for relational model
-		fr_train=(x)->sum(x[1],2);
-		fr_exec=(m,x)->rand(C,size(x,2))
-	end
+# Initializations           
+	ft=x->vec(x)
+	Xo = rand(1,N)
+	update = trues(N)
 
-	amv = sparse.(Symmetric.([sprand(Float64, N,N, 0.5) for i in 1:nAdj]));
-	adv = adjacency.(amv); 
+	# Train and test methods for relational model
+	fr_train=(x)->sum(x[1],2);
+	fr_exec=(m,x)->sum(x.-m,1)
 
-	for infopt in inferences
-		for rlopt in rlearners  
-			Test.@test try
-				# Train NetworkLearner
-				nlmodel=fit(NetworkLearnerEnt, Xo, update, 
-				       adv, fr_train,fr_exec;
-				       learner=rlopt, 
-				       inference=infopt,
-				       f_targets=ft,
-				       normalize=false, maxiter = 5
-				)
-				
-				# Make modifications of adjacencies, estimates
-				# ...
+amv = sparse.(Symmetric.([sprand(Float64, N,N, 0.5) for i in 1:nAdj]));
+adv = adjacency.(amv); 
 
-				# Re-run inference
-				infer!(nlmodel)
-				true
-			catch
-				false
-			end
+for infopt in inferences
+	for rlopt in rlearners  
+		Test.@test try
+			# Train NetworkLearner
+			nlmodel=fit(NetworkLearnerEnt, Xo, update, 
+			       adv, fr_train,fr_exec;
+			       learner=rlopt, 
+			       inference=infopt,
+			       f_targets=ft,
+			       normalize=false, maxiter = 5
+			)
+			
+			# Make modifications of adjacencies, estimates
+			# ...
+
+			# Re-run inference
+			infer!(nlmodel)
+			true
+		catch
+			false
 		end
 	end
 end
-
-
 
 Test.@test try
 	show(nlmodel)
