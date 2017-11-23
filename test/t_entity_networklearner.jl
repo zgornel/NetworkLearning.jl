@@ -6,7 +6,7 @@ function t_entity_networklearner()
 #########################################
 N= 100							# Number of entitites 
 inferences = [:ic, :rl]					# Collective inferences
-rlearners = [:rn, :wrn, :bayesrn, :cdrn]		# Relational learners
+rlearners = [:rn, :wrn, :bayesrn]			# Relational learners
 nAdj = 2						# Number of adjacencies to generate	
 X = rand(1,N); 						# Training data
 
