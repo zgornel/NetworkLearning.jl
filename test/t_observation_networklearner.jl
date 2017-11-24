@@ -6,7 +6,7 @@ function t_observation_networklearner()
 #############################################
 Ntrain = 100						# Number of training observations
 Ntest = 10						# Number of testing observations					
-inferences = [:ic, :rl]					# Collective inferences
+inferences = [:ic, :rl, :gs]				# Collective inferences
 rlearners = [:rn, :wrn, :bayesrn, :cdrn]		# Relational learners
 nAdj = 2						# Number of adjacencies to generate	
 X = rand(1,Ntrain); 					# Training data

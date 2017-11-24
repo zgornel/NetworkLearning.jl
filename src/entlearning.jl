@@ -7,6 +7,11 @@
 # data is used as well
 
 
+"""
+Entity-based network learning model state. It consists of an `Array` with estimates and a an update
+mask in the form of a `BitVector` indicating which observation estimates are to be updated (the
+ones that are not updated are considered training/stable observations).
+"""
 mutable struct NetworkLearnerState{T<:AbstractArray}
 	ê::T			# estimates
 	update::BitVector	# which estimates to update
@@ -21,6 +26,9 @@ Base.show(io::IO, m::NetworkLearnerState) = print(io, "NetworkLearner state: $(s
 
 
 
+"""
+Entity-based network learning model type.
+"""
 mutable struct NetworkLearnerEnt{S,V,
 				    NS<:NetworkLearnerState,
 				    R<:Vector{<:AbstractRelationalLearner},
@@ -52,6 +60,9 @@ end
 ####################
 # Training methods #
 ####################
+"""
+Training method for the network learning framework.
+"""
 function fit(::Type{NetworkLearnerEnt}, Xo::AbstractMatrix, update::BitVector, Adj::A where A<:Vector{<:AbstractAdjacency}, 
 	     	fr_train, fr_exec; 
 		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), learner::Symbol=:wvrn, inference::Symbol=:rl, 
@@ -98,8 +109,11 @@ end
 
 
 
+"""
+Training method for the network learning framework. This method should not be called directly.
+"""
 function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R, Ci::C, fr_train::U, fr_exec::U2; 
-		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), normalize::Bool=true, use_local_data::Bool=true) where {
+		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), normalize::Bool=true) where {
 			T<:AbstractMatrix, 
 			A<:Vector{<:AbstractAdjacency}, 
 			R<:Type{<:AbstractRelationalLearner}, 
@@ -151,8 +165,9 @@ end
 
 
 
-# Function that calls collective inference using the information in contained in the 
-# entity-based network learner
+"""
+Function that calls collective inference using the information in contained in the entity-based network learner
+"""
 function infer!(model::T) where T<:NetworkLearnerEnt
 	p = size(model.state.ê,1)								# number of estimates/entity
 	m = length(model.Adj) * p								# number of relational variables

@@ -33,6 +33,7 @@ Two scenarios for network learning can be distinguished:
 - **Collective inference**
 	- relaxation labeling
 	- collective classification
+	- gibbs sampling (EXPERIMENTAL, slow)
 
 - **Adjacency strucures**
 	- matrices
@@ -292,8 +293,8 @@ The output of the above code is:
 
 ## Planned features
 	
-- Gibbs sampling collective inference
 - Support for both column-major and row-major datasets; so far, only column-major datasets supported (i.e. observations correspond to columns in the input/output matrices)
+- Implement optional parallelism (where feasible)
 
 
 ## Documentation

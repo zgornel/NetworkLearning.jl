@@ -2,7 +2,7 @@
 # Observation-based learning #
 ##############################
 """
-Observation-based netwok learning model type.
+Observation-based network learning model type.
 """
 mutable struct NetworkLearnerObs{T,U,S,V,
 				    R<:Vector{<:AbstractRelationalLearner},
