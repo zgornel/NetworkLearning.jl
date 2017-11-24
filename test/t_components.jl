@@ -29,7 +29,8 @@ f(n::Int, T=Int) = (data::Vector{Tuple{Int,Int}})->begin
 end
 
 # Test functionality
-Test.@test adjacency() isa EmptyAdjacency
+E_Adj = adjacency()
+Test.@test E_Adj isa EmptyAdjacency
 Test.@test adjacency(nothing) isa EmptyAdjacency
 
 A_Adj = adjacency(Ai)
@@ -67,6 +68,7 @@ Test.@test adjacency(strip_adjacency(A_Adj),A).am == A_Adj.am
 Test.@test adjacency(strip_adjacency(G_Adj),A).ag == G_Adj.ag
 Test.@test adjacency(strip_adjacency(C_Adj),data).am == A_Adj.am
 Test.@test adjacency(strip_adjacency(P_Adj),data).am == A_Adj.am
+Test.@test adjacency(strip_adjacency(E_Adj),A).am == A_Adj.am
 
 Test.@test adjacency_graph(A_Adj) == G
 Test.@test adjacency_graph(G_Adj) == G
@@ -77,6 +79,17 @@ Test.@test adjacency_matrix(A_Adj) == Ai
 Test.@test adjacency_matrix(G_Adj) == Ai
 Test.@test adjacency_matrix(Gw_Adj) == A
 Test.@test adjacency_matrix(C_Adj) == A
+
+# Test show methods
+buf = IOBuffer()
+Test.@test try
+	for Adj in [A_Adj, G_Adj, C_Adj, P_Adj, E_Adj]
+		show(buf,Adj)
+	end
+	true
+catch
+	false
+end
 
 # Test update_adjacency
 A = [0 1 0; 1 0 0; 0 0 0]
@@ -97,8 +110,28 @@ f_update_g(x,y) = G->add_edge!(G,x,y)
 update_adjacency!(Adj_g, f_update_g(1,3))
 Test.@test Matrix(adjacency_matrix(Adj_g)) == [0 1 1; 1 0 0; 1 0  0]
 
-
-
+# Test errors
+for Adj in [P_Adj, E_Adj]
+	Test.@test try
+		update_adjacency(Adj)
+		false
+	catch
+		true # must fail because of the eror
+	end
+	
+	Test.@test try
+		adjacency_graph(Adj)
+		false
+	catch
+		true # must fail because of the eror
+	end
+	Test.@test try
+		adjacency_matrix(Adj)
+		false
+	catch
+		true # must fail because of the eror
+	end
+end
 ######################################################
 # Test fit/transform methods for relational learners #
 ######################################################
@@ -163,5 +196,22 @@ useidx = [1,2,6]
 # 1 and 2 cite each other (edge weight of 2), 1 cites 6 one time (edge weight of 1)
 Test.@test NetworkLearning.generate_partial_adjacency(cited,citing,useidx) == [0.0 2 1; 2 0 0; 1 0 0]
  
+Test.@test NetworkLearning.get_size_out([1.,2,3]) == 1
+Test.@test NetworkLearning.get_size_out([1,2,3]) == 3
+Test.@test try
+	NetworkLearning.get_size_out(rand(2,1))
+	false
+catch
+	true
+end
+
+Test.@test NetworkLearning.getpriors([1.,2,3]) == [1.0]
+Test.@test NetworkLearning.getpriors([1,2,3]) == 1/3*ones(3) 
+Test.@test try
+	NetworkLearning.getpriors(rand(2,1))
+	false
+catch
+	true
+end
 
 end

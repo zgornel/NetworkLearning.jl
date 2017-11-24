@@ -59,12 +59,12 @@ for infopt in inferences
 	end
 end
 
+buf = IOBuffer()
 Test.@test try
-	show(nlmodel)
+	show(buf,nlmodel)
 	true
 catch
 	false
 end
-
 
 end
