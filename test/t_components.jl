@@ -1,4 +1,5 @@
 function t_components()
+
 ########################################
 # Test adjacency-related functionality #
 ########################################
@@ -132,6 +133,9 @@ for Adj in [P_Adj, E_Adj]
 		true # must fail because of the eror
 	end
 end
+
+
+
 ######################################################
 # Test fit/transform methods for relational learners #
 ######################################################
@@ -189,6 +193,29 @@ end
 ###################################
 # Tests for the utility functions #
 ###################################
+
+# Test observation-related functions i.e. oppdim, intdim, matrix_prealloc
+r_oppdim = [ObsDim.Constant{2}(), ObsDim.First(), ObsDim.Constant{2}(), ObsDim.Constant{1}()]
+r_intdim = [1,2,1,2]
+
+tv = [ObsDim.First(), ObsDim.Last(), ObsDim.Constant{1}(), ObsDim.Constant{2}()]
+for (i,o) in enumerate(tv)
+	Test.@test oppdim(o) == r_oppdim[i]
+	Test.@test intdim(o) == r_intdim[i]
+end
+
+Test.@test matrix_prealloc(10,2,ObsDim.Constant{1}(),1) == ones(10,2)
+Test.@test matrix_prealloc(10,2,ObsDim.Constant{2}(),1) == ones(2,10)
+Test.@test matrix_prealloc(10,2,ObsDim.First(),1) == ones(10,2)
+Test.@test matrix_prealloc(10,2,ObsDim.Last(),1) == ones(2,10)
+Test.@test try 
+	matrix_prealloc(10,2,ObsDim.Undefined(),1)
+	false
+catch
+	true
+end
+
+# Test the rest ...
 cited =  [1,1,2,2,3,3,4,6,5,6]
 citing = [2,3,1,5,2,6,7,1,2,3]
 useidx = [1,2,6]

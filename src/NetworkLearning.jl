@@ -50,6 +50,7 @@ module NetworkLearning
 		NetworkLearnerEnt,
 
 		# Functionality	
+		@print_verbose,
 		fit, 
 		predict, 
 		predict!,
@@ -62,8 +63,10 @@ module NetworkLearning
 		strip_adjacency,
 		adjacency_matrix,
 		adjacency_graph,
-		@print_verbose
-	
+		intdim, 
+		oppdim, 
+		matrix_prealloc
+
 	abstract type AbstractNetworkLearner end
 	
 	include("utils.jl")									# Small utility functions

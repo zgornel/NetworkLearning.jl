@@ -46,28 +46,31 @@ Base.show(io::IO, vci::T) where T<:AbstractVector{S} where S<:AbstractCollective
 
 
 # Transform methods
-function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S, 
+function transform!(Xo::T, Ci::RelaxationLabelingInferer, obsdim::OD, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S, 
 		    update::BitVector=trues(nobs(Xo))) where {
 		M, E, 
+		OD<:LearnBase.ObsDimension,
 		T<:AbstractMatrix, R<:Vector{<:AbstractRelationalLearner}, 
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
 	
 	# Initializations
-	n = nobs(Xo)										# number of observations
+	n = nobs(Xo, obsdim)									# number of observations
 	κ = Ci.κ										# a constant between 0 and 1
 	α = Ci.α										# decay
 	β = κ											# weight of current iteration estimates
 	maxiter = Ci.maxiter									# maximum number of iterations
 	tol = Ci.tol										# maximum error 
 	f_targets = Ci.tf									# function used to obtain targets
-	size_out = size(Xo,1)									# ouput size (corresponds to the number of classes)
+	size_out = nvars(Xo,obsdim)								# ouput size (corresponds to the number of classes)
 	Xl = copy(Xo)										# local estimates
 	ŷ = f_targets(Xo)									# Obtain first the labels corresponding to the local model
 	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
 	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
-	Xrᵢ = zeros(size_out,n)									# Initialize temporary storage	
+	Xrᵢ = matrix_prealloc(n, size_out, obsdim, 0.0)						# Initialize temporary storage	
 
 	# Iterate
+	_Xo = datasubset(Xo, update, obsdim)
+	_Xr = datasubset(Xr, update, obsdim) 
 	for it in 1:maxiter
 		β = β * α									# Update learning rate
 		copy!(ŷₒ, ŷ);									# Update 'previous iteration' estimates 
@@ -79,11 +82,13 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 			transform!(Xrᵢ, RLᵢ, Aᵢ, Xo, ŷ)
 
 			# Update relational data output
-			Xr[offset+(i-1)*size_out+1 : offset+i*size_out,:] = Xrᵢ
+			_Xrᵢ= datasubset(Xr, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
+			_Xrᵢ[:] = Xrᵢ
 		end
 		
 		# Update estimates
-		Xo[:,update] = β.*fr_exec(Mr, Xr[:,update]) + (1.0-β).*Xo[:,update] 
+		
+		_Xo[:] = β.*fr_exec(Mr, _Xr) + (1.0-β).*_Xo 
 		ŷ = f_targets(Xo)
 
 		# Convergence check
@@ -97,7 +102,7 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 		# Replace non-converging estimates with local estimates
 		if (it == maxiter) && (maxiter != 1)
 			_nc = ŷ.!=ŷₒ 		# positions of non-converging estimates
-			datasubset(Xo, _nc)[:] = datasubset(Xl, _nc)[:]
+			datasubset(Xo, _nc, obsdim)[:] = datasubset(Xl, _nc, obsdim)[:]
 			@print_verbose 1 "Maximum level of iterations reached, $(sum(_nc)) estimates did not converge."
 		end
 	end
@@ -105,24 +110,25 @@ function transform!(Xo::T, Ci::RelaxationLabelingInferer, Mr::M, fr_exec::E, RL:
 	return Xo
 end
 
-function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S,
+function transform!(Xo::T, Ci::IterativeClassificationInferer, obsdim::OD, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S,
 		    update::BitVector=trues(nobs(Xo))) where {
 		M, E, 
+		OD<:LearnBase.ObsDimension,
 		T<:AbstractMatrix, R<:Vector{<:AbstractRelationalLearner}, 
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
 	
 	# Initializations
-	n = nobs(Xr)										# number of observations 
+	n = nobs(Xr,obsdim)									# number of observations 
 	ordering = [i:i for i in find(update)]							# observation estimation order 
 	maxiter = Ci.maxiter									# maximum number of iterations
 	tol = Ci.tol										# maximum error 
 	f_targets = Ci.tf									# function used to obtain targets
-	size_out = size(Xo,1)									# ouput size (corresponds to the number of classes)
+	size_out = nvars(Xo,obsdim)								# ouput size (corresponds to the number of classes)
 	Xl = copy(Xo)										# local estimates	
 	ŷ = f_targets(Xo)									# Obtain first the labels corresponding to the local model
 	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
 	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
-	Xrᵢⱼ = zeros(size_out,1)								# Initialize temporary storage	
+	Xrᵢⱼ = matrix_prealloc(1, size_out, obsdim, 0.0)					# Initialize temporary storage	
 	
 	# Iterate
 	for it in 1:maxiter	
@@ -133,8 +139,8 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E
 		for rⱼ in ordering		
 			
 			# Get data subsets pertinent to the current observation 
-			Xrⱼ = datasubset(Xr, rⱼ)
-			Xoⱼ = datasubset(Xo, rⱼ)
+			Xrⱼ = datasubset(Xr, rⱼ, obsdim)
+			Xoⱼ = datasubset(Xo, rⱼ, obsdim)
 			ŷⱼ = datasubset(ŷ, rⱼ)
 
 			# Obtain relational data for the current observation
@@ -144,7 +150,8 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E
 				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
-				Xrⱼ[offset+(i-1)*size_out+1 : offset+i*size_out,:] = Xrᵢⱼ
+				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
+				_Xrⱼ[:] = Xrᵢⱼ
 			end
 		
 			# Update estimates
@@ -163,7 +170,7 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, Mr::M, fr_exec::E
 		# Replace non-converging estimates with local estimates
 		if (it == maxiter) && (maxiter != 1)
 			_nc = ŷ.!=ŷₒ 		# positions of non-converging estimates
-			datasubset(Xo, _nc)[:] = datasubset(Xl, _nc)[:]
+			datasubset(Xo, _nc, obsdim)[:] = datasubset(Xl, _nc, obsdim)[:]
 			@print_verbose 1 "Maximum level of iterations reached, $(sum(_nc)) estimates did not converge."
 		end
 	end
@@ -178,26 +185,27 @@ end
 # in accordance to the class-wise probabilities of its neighbourhood. This however
 # implies 1. sampling (slow), 2. this would work only for relational learners that 
 # make use of the neighbourhood class estimates (i.e. :rn and :bayesrn only)
-function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S,
+function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec::E, RL::R, Adj::A, offset::Int, Xr::S,
 		    update::BitVector=trues(nobs(Xo))) where {
 		M, E, 
+		OD<:LearnBase.ObsDimension,
 		T<:AbstractMatrix, R<:Vector{<:AbstractRelationalLearner}, 
 		A<:Vector{<:AbstractAdjacency}, S<:AbstractMatrix}
 	
 	# Initializations
-	n = nobs(Xr)										# number of observations 
+	n = nobs(Xr, obsdim)									# number of observations 
 	updateable = find(update)
 	ordering = [i:i for i in updateable]							# observation estimation order 
 	maxiter = Ci.maxiter									# maximum number of iterations
 	burniter = Ci.burniter									# number of burn-in iterations
 	tol = Ci.tol										# maximum error 
 	f_targets = Ci.tf									# function used to obtain targets
-	size_out = size(Xo,1)									# ouput size (corresponds to the number of classes)
+	size_out = nvars(Xo,obsdim)								# ouput size (corresponds to the number of classes)
 	Xl = copy(Xo)										# local estimates	
 	ŷ = f_targets(Xo)									# Obtain first the labels corresponding to the local model
 	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
 	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
-	Xrᵢⱼ = zeros(size_out,1)								# Initialize temporary storage	
+	Xrᵢⱼ = matrix_prealloc(1, size_out, obsdim, 0.0)					# Initialize temporary storage	
 
 	# Burn-in
 	@print_verbose 2 "\tRunning $burniter burn-in iterations ..."
@@ -208,8 +216,8 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 		for rⱼ in ordering		
 			
 			# Get data subsets pertinent to the current observation 
-			Xrⱼ = datasubset(Xr, rⱼ)
-			Xoⱼ = datasubset(Xo, rⱼ)
+			Xrⱼ = datasubset(Xr, rⱼ, obsdim)
+			Xoⱼ = datasubset(Xo, rⱼ, obsdim)
 			ŷⱼ = datasubset(ŷ, rⱼ)
 
 			# Obtain relational data for the current observation
@@ -219,7 +227,8 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
-				Xrⱼ[offset+(i-1)*size_out+1 : offset+i*size_out,:] = Xrᵢⱼ
+				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
+				_Xrⱼ[:] = Xrᵢⱼ
 			end
 		
 			# Update estimates
@@ -229,7 +238,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 	end	
 
 	# Initialize class-counting structure
-	class_counts = zeros(size_out, n) 
+	class_counts = matrix_prealloc(n, size_out, obsdim, 0.0) 
 	
 	# Small function that makes the class count work (even though it does not make sense)
 	# for cases outside classification (i.e. input labels are floats)
@@ -245,10 +254,11 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 		for rⱼ in ordering		
 			
 			# Get data subsets pertinent to the current observation 
-			Xrⱼ = datasubset(Xr, rⱼ)
-			Xoⱼ = datasubset(Xo, rⱼ)
+			Xrⱼ = datasubset(Xr, rⱼ, obsdim)
+			Xoⱼ = datasubset(Xo, rⱼ, obsdim)
 			ŷⱼ = datasubset(ŷ, rⱼ)
-
+			cⱼ = datasubset(class_counts, rⱼ, obsdim)
+			
 			# Obtain relational data for the current observation
 			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 
@@ -256,13 +266,14 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
-				Xrⱼ[offset+(i-1)*size_out+1 : offset+i*size_out,:] = Xrᵢⱼ
+				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
+				_Xrⱼ[:] = Xrᵢⱼ
 			end
 		
 			# Update estimates
 			Xoⱼ[:] = fr_exec(Mr, Xrⱼ) 
 			ŷⱼ[:] = f_targets(Xoⱼ)
-			class_counts[_idx_(ŷⱼ),rⱼ].+=1.0
+			cⱼ[_idx_(ŷⱼ)].+=1.0
 		end
 		
 		# Convergence check
@@ -275,7 +286,9 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, Mr::M, fr_exec::E, RL::R, A
 	end
 	
 	# Assign new estimates
-	Xo[:, updateable] = (class_counts./sum(class_counts,1))[:,updateable]	
+	_Xo = datasubset(Xo, updateable, obsdim)
+	_cc = datasubset(class_counts, updateable, obsdim)
+	_Xo[:] = _cc ./ sum(_cc, intdim(oppdim(obsdim)))
 	
 	return Xo
 end

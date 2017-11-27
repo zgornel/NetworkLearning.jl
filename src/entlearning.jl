@@ -12,17 +12,18 @@ Entity-based network learning model state. It consists of an `Array` with estima
 mask in the form of a `BitVector` indicating which observation estimates are to be updated (the
 ones that are not updated are considered training/stable observations).
 """
-mutable struct NetworkLearnerState{T<:AbstractArray}
+mutable struct NetworkLearnerState{T<:AbstractArray, OD<:LearnBase.ObsDimension}
 	ê::T			# estimates
 	update::BitVector	# which estimates to update
+	obsdim::OD
 
-	function NetworkLearnerState(ŷ::T, update::BitVector) where T<:AbstractArray
-		@assert  nobs(ŷ) == nobs(update) "Number of NetworkLearner estimates should be equal to the length of the update mask."
-		new{T}(ŷ, update)
+	function NetworkLearnerState(ê::T, update::BitVector, obsdim::OD) where {T<:AbstractArray, OD<:LearnBase.ObsDimension}
+		@assert  nobs(ê,obsdim=obsdim) == length(update) "Number of NetworkLearner estimates should be equal to the length of the update mask."
+		new{T,OD}(ê, update, obsdim)
 	end
 end
 
-Base.show(io::IO, m::NetworkLearnerState) = print(io, "NetworkLearner state: $(sum(m.update))/$(nobs(m.update)) entities can be updated") 
+Base.show(io::IO, m::NetworkLearnerState) = print(io, "NetworkLearner state: $(sum(m.update))/$(length(m.update)) entities can be updated") 
 
 
 
@@ -33,7 +34,8 @@ mutable struct NetworkLearnerEnt{S,V,
 				    NS<:NetworkLearnerState,
 				    R<:Vector{<:AbstractRelationalLearner},
 				    C<:AbstractCollectiveInferer,
-				    A<:Vector{<:AbstractAdjacency}} <: AbstractNetworkLearner 			 
+				    A<:Vector{<:AbstractAdjacency},
+				    OD<:LearnBase.ObsDimension} <: AbstractNetworkLearner 			 
 	state::NS										# state 
 	Mr::S											# relational model
 	fr_exec::V										# relational model execution function
@@ -41,6 +43,7 @@ mutable struct NetworkLearnerEnt{S,V,
 	Ci::C											# collective inferer	
 	Adj::A											# adjacency information
 	size_out::Int										# expected output dimensionality
+	obsdim::OD										# observation dimension
 end
 
 
@@ -53,6 +56,7 @@ Base.show(io::IO, m::NetworkLearnerEnt) = begin
 	print(io,"`- relational learners: "); println(io, m.RL)
 	print(io,"`- collective inferer: "); println(io, m.Ci)
 	print(io,"`- adjacency: "); println(io, m.Adj)	
+	println(io,"`- observations are: $(m.obsdim == ObsDim.Constant{1} ? "rows" : "columns")");
 end
 
 
@@ -66,7 +70,7 @@ Training method for the network learning framework.
 function fit(::Type{NetworkLearnerEnt}, Xo::AbstractMatrix, update::BitVector, Adj::A where A<:Vector{<:AbstractAdjacency}, 
 	     	fr_train, fr_exec; 
 		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), learner::Symbol=:wvrn, inference::Symbol=:rl, 
-		normalize::Bool=true, f_targets::Function=x->targets(indmax,x), 
+		normalize::Bool=true, f_targets::Function=x->targets(indmax,x), obsdim::Int=2, 
 		tol::Float64=1e-6, κ::Float64=1.0, α::Float64=0.99, maxiter::Int=100, bratio::Float64=0.1) 
 
 	# Parse, transform input arguments
@@ -76,6 +80,7 @@ function fit(::Type{NetworkLearnerEnt}, Xo::AbstractMatrix, update::BitVector, A
 	maxiter = ifelse(maxiter<=0, 1, maxiter)
 	bratio = clamp(bratio, 1e-6, 1.0-1e-6)
 
+	@assert obsdim in [1,2] "Observation dimension can have only two values 1 (row-major) or 2 (column-major)."
 	@assert all((priors.>=0.0) .& (priors .<=1.0)) "All priors have to be between 0.0 and 1.0."
 	
 	# Parse relational learner argument and generate relational learner type
@@ -104,7 +109,8 @@ function fit(::Type{NetworkLearnerEnt}, Xo::AbstractMatrix, update::BitVector, A
 		Ci = RelaxationLabelingInferer(maxiter, tol, f_targets, κ, α)
 	end
 	
-	fit(NetworkLearnerEnt, Xo, update, Adj, Rl, Ci, fr_train, fr_exec; priors=priors, normalize=normalize)
+	fit(NetworkLearnerEnt, Xo, update, Adj, Rl, Ci, fr_train, fr_exec; 
+     		priors=priors, normalize=normalize, obsdim=ObsDim.Constant{obsdim}())
 end
 
 
@@ -113,7 +119,8 @@ end
 Training method for the network learning framework. This method should not be called directly.
 """
 function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R, Ci::C, fr_train::U, fr_exec::U2; 
-		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), normalize::Bool=true) where {
+		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), normalize::Bool=true, 
+		obsdim::LearnBase.ObsDimension=ObsDim.Constant{2}()) where {
 			T<:AbstractMatrix, 
 			A<:Vector{<:AbstractAdjacency}, 
 			R<:Type{<:AbstractRelationalLearner}, 
@@ -122,8 +129,8 @@ function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R,
 		}
 	 
 	# Step 0: pre-process input arguments and retrieve sizes
-	n = nobs(Xo)										# number of entities
-	p = size(Xo,1)										# number of estimates/entity
+	n = nobs(Xo,obsdim)									# number of entities
+	p = nvars(Xo,obsdim)									# number of estimates/entity
 	m = length(Adj) * p									# number of relational variables
 
 	@assert p == length(priors) "Found $p entities/estimate, the priors indicate $(length(priors))."
@@ -131,16 +138,17 @@ function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R,
 	# Step 1: Get relational variables by training and executing the relational learner 
 	@print_verbose 2 "Calculating relational variables ..."
 	mₜ = .!update										# training mask (entities that are not updated
-	Xoₜ = Xo[:,mₜ]										#    are considered training or high/certainty samples)
+	Xoₜ = datasubset(Xo, mₜ, obsdim)							#    are considered training or high/certainty samples)
 	nₜ = sum(mₜ)										# number of training observations
 	yₜ = Ci.tf(Xoₜ)										# get targets
 	Adjₜ = [adjacency(adjacency_matrix(Aᵢ)[mₜ,mₜ]) for Aᵢ in Adj]
-	RL = [fit(Rl, Aᵢₜ, Xoₜ, yₜ; priors=priors, normalize=normalize) for Aᵢₜ in Adjₜ]	# Train relational learners				
+	RL = [fit(Rl, Aᵢₜ, Xoₜ, yₜ; obsdim=obsdim, priors=priors, normalize=normalize)
+       		for Aᵢₜ in Adjₜ]								# Train relational learners				
 
 	# Pre-allocate relational variables array	
-	Xr = zeros(m,n)
-	Xrₜ = Xr[:,mₜ]
-	Xrᵢ = zeros(p,nₜ)									# Initialize temporary storage	
+	Xr = matrix_prealloc(n, m, obsdim, 0.0)
+	Xrᵢ = matrix_prealloc(nₜ, p, obsdim, 0.0)						# Initialize temporary storage	
+	Xrₜ = datasubset(Xr, mₜ, obsdim)
 	for (i,(RLᵢ,Aᵢₜ)) in enumerate(zip(RL,Adjₜ))		
 		
 		# Apply relational learner
@@ -157,10 +165,10 @@ function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R,
 
 	# Step 3: Apply collective inference
 	@print_verbose 2 "Collective inference ..."
-	transform!(Xo, Ci, Mr, fr_exec, RL, Adj, 0, Xr, update)	
+	transform!(Xo, Ci, obsdim, Mr, fr_exec, RL, Adj, 0, Xr, update)	
 	
 	# Step 3: return network learner 
-	return NetworkLearnerEnt(NetworkLearnerState(Xo,update), Mr, fr_exec, RL, Ci, Adj, p)
+	return NetworkLearnerEnt(NetworkLearnerState(Xo,update,obsdim), Mr, fr_exec, RL, Ci, Adj, p, obsdim)
 end
 
 
@@ -169,9 +177,9 @@ end
 Function that calls collective inference using the information in contained in the entity-based network learner
 """
 function infer!(model::T) where T<:NetworkLearnerEnt
-	p = size(model.state.ê,1)								# number of estimates/entity
+	p = nvars(model.state.ê, model.obsdim)							# number of estimates/entity
 	m = length(model.Adj) * p								# number of relational variables
-	Xr = zeros(m,nobs(model.state.ê))
+	Xr = matrix_prealloc(nobs(model.state.ê, model.obsdim), m, model.obsdim, 0.0)
 
-	transform!(model.state.ê, model.Ci, model.Mr, model.fr_exec, model.RL, model.Adj, 0, Xr, model.state.update) 
+	transform!(model.state.ê, model.Ci, model.obsdim, model.Mr, model.fr_exec, model.RL, model.Adj, 0, Xr, model.state.update) 
 end

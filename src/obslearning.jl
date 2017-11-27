@@ -8,7 +8,8 @@ mutable struct NetworkLearnerObs{T,U,S,V,
 				    R<:Vector{<:AbstractRelationalLearner},
 				    C<:AbstractCollectiveInferer,
 				    A<:Vector{<:AbstractAdjacency},
-				    L<:Union{Void, MLLabelUtils.LabelEncoding}} <: AbstractNetworkLearner 			 
+				    L<:Union{Void, MLLabelUtils.LabelEncoding},
+				    OD<:LearnBase.ObsDimension} <: AbstractNetworkLearner 			 
 	Ml::T											# local model
 	fl_exec::U										# local model execution function
 	Mr::S											# relational model
@@ -20,6 +21,7 @@ mutable struct NetworkLearnerObs{T,U,S,V,
 	target_enc::L										# target encoding
 	size_in::Int										# expected input dimensionality
 	size_out::Int										# expected output dimensionality
+	obsdim::OD										# observation dimension
 end
 
 
@@ -33,6 +35,7 @@ Base.show(io::IO, m::NetworkLearnerObs) = begin
 	print(io,"`- collective inferer: "); println(io, m.Ci)
 	print(io,"`- adjacency: "); println(io, m.Adj)	
 	println(io,"`- use local data: $(m.use_local_data)");
+	println(io,"`- observations are: $(m.obsdim == ObsDim.Constant{1} ? "rows" : "columns")");
 	println(io,"`- targets: $(m.target_enc isa Void ? "not encoded" : "encoded")");
 end
 
@@ -48,7 +51,7 @@ function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj
 		fl_train, fl_exec, fr_train, fr_exec; 
 		priors::Vector{Float64}=getpriors(y), learner::Symbol=:wvrn, inference::Symbol=:rl, 
 		normalize::Bool=true, use_local_data::Bool=true, f_targets::Function=x->targets(indmax,x), 
-		tol::Float64=1e-6, κ::Float64=1.0, α::Float64=0.99, maxiter::Int=100, bratio::Float64=0.1) 
+		obsdim::Int = 2, tol::Float64=1e-6, κ::Float64=1.0, α::Float64=0.99, maxiter::Int=100, bratio::Float64=0.1) 
 
 	# Parse, transform input arguments
 	κ = clamp(κ, 1e-6, 1.0)
@@ -56,7 +59,9 @@ function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj
 	tol = clamp(tol, 0.0, Inf)
 	maxiter = ifelse(maxiter<=0, 1, maxiter)
 	bratio = clamp(bratio, 1e-6, 1.0-1e-6)
+	
 	@assert all((priors.>=0.0) .& (priors .<=1.0)) "All priors have to be between 0.0 and 1.0."
+	@assert obsdim in [1,2] "Observation dimension can have only two values 1 (row-major) or 2 (column-major)."
 	
 	# Parse relational learner argument and generate relational learner type
 	if learner == :rn
@@ -85,7 +90,8 @@ function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj
 	end
 	
 	fit(NetworkLearnerObs, X, y, Adj, Rl, Ci, fl_train, fl_exec, fr_train, fr_exec; 
-		priors=priors, normalize=normalize, use_local_data=use_local_data)
+		priors=priors, normalize=normalize, use_local_data=use_local_data, 
+		obsdim=ObsDim.Constant{obsdim}())
 end
 
 
@@ -93,7 +99,8 @@ end
 Training method for the network learning framework. This method should not be called directly.
 """
 function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_train::U, fl_exec::U2, fr_train::U3, fr_exec::U4; 
-		priors::Vector{Float64}=getpriors(y), normalize::Bool=true, use_local_data::Bool=true) where {
+		priors::Vector{Float64}=getpriors(y), normalize::Bool=true, use_local_data::Bool=true, 
+		obsdim::LearnBase.ObsDimension=ObsDim.Constant{2}()) where {
 			T<:AbstractMatrix, 
 			S<:AbstractArray, 
 			A<:Vector{<:AbstractAdjacency}, 
@@ -103,20 +110,21 @@ function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_tra
 		}
 	
 	# Step 0: pre-process input arguments and retrieve sizes
-	size_in = size(X,1)									# number of local variables
+	size_in = nvars(X,obsdim)								# number of local variables
 	size_out = get_size_out(y)								# number of relational variables / adjacency
-	n = nobs(X)										# number of observations
+	n = nobs(X,obsdim)									# number of observations
 	m = length(Adj) * size_out								# number of relational variables
 
 	@assert size_out == length(priors) "Found $c classes, the priors indicate $(length(priors))."
 	
 	# Pre-allocate relational variables array	
 	if use_local_data									# Local observation variable data is used
-		Xr = zeros(size_in+m, n)
-		Xr[1:size_in,:] = X
+		Xr = matrix_prealloc(n, size_in+m, obsdim, 0.0)
+		_Xr = datasubset(Xr, 1:size_in, oppdim(obsdim))
+		_Xr[:] = X
 		offset = size_in					
 	else											# Only relational variables are used
-		Xr = zeros(m,n)				
+		Xr = matrix_prealloc(n, m, obsdim, 0.0)
 		offset = 0
 	end
 	
@@ -133,16 +141,18 @@ function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_tra
 
 	# Step 2: Get relational variables by training and executing the relational learner 
 	@print_verbose 2 "Calculating relational variables ..."
-	RL = [fit(Rl, Aᵢ, Xl, yₑ; priors=priors, normalize=normalize) for Aᵢ in Adj]		# Train relational learners				
+	RL = [fit(Rl, Aᵢ, Xl, yₑ; obsdim=obsdim, priors=priors, normalize=normalize) 
+       		for Aᵢ in Adj]									# Train relational learners				
 
-	Xrᵢ = zeros(size_out,n)									# Initialize temporary storage	
+	Xrᵢ = matrix_prealloc(n, size_out, obsdim, 0.0)						# Initialize temporary storage	
 	for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,Adj))		
 		
 		# Apply relational learner
 		transform!(Xrᵢ, RLᵢ, Aᵢ, Xl, yₑ)
 
 		# Update relational data output		
-		Xr[offset+(i-1)*size_out+1 : offset+i*size_out, :] = Xrᵢ									
+		_Xr = datasubset(Xr, offset+(i-1)*size_out+1:offset+i*size_out, oppdim(obsdim))
+		_Xr[:] = Xrᵢ									
 	end
 	
 
@@ -159,7 +169,7 @@ function fit(::Type{NetworkLearnerObs}, X::T, y::S, Adj::A, Rl::R, Ci::C, fl_tra
 
 	# Step 5: return network learner 
 	@print_verbose 2 "Done."
-	return NetworkLearnerObs(Ml, fl_exec, Mr, fr_exec, RL, Ci, Adj_s, use_local_data, t_enc, size_in, size_out)
+	return NetworkLearnerObs(Ml, fl_exec, Mr, fr_exec, RL, Ci, Adj_s, use_local_data, t_enc, size_in, size_out, obsdim)
 end
 
 
@@ -169,8 +179,8 @@ end
 """
 Prediction method for the network learning framework.
 """
-function predict(model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
-	Xo = zeros(model.size_out, nobs(X))
+function predict(model::M, X::T, update::BitVector=trues(nobs(X,model.obsdim))) where {M<:NetworkLearnerObs, T<:AbstractMatrix}
+	Xo = matrix_prealloc(nobs(X,model.obsdim), model.size_out, model.obsdim, 0.0)
 	predict!(Xo, model, X, update)
 	return Xo
 end
@@ -178,35 +188,38 @@ end
 """
 In-place prediction method for the network learning framework.
 """
-function predict!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X))) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
+function predict!(Xo::S, model::M, X::T, update::BitVector=trues(nobs(X,model.obsdim))) where {M<:NetworkLearnerObs, T<:AbstractMatrix, S<:AbstractMatrix}
 	
 	# Step 0: Make initializations and pre-allocations 	
-	m = size(X,1)										# number of input variables
-	n = nobs(X)										# number of observations
+	obsdim = model.obsdim									# observation dimension
+	m = nvars(X,obsdim)									# number of input variables
+	n = nobs(X,obsdim)									# number of observations
 	l = length(model.Adj)									# number of adjacencies in the model
 
 	@assert model.size_in == m "Expected input dimensionality $(model.size_in), got $m."
-	@assert size(Xo) == (model.size_out, n) "Output dataset size must be $(model.size_out)×$n."
+	@assert (nvars(Xo,obsdim),nobs(Xo,obsdim)) == (model.size_out, n) "Output dataset size does not match expected size ($(model.size_out) variables×$n observations)."
 	
 	if model.use_local_data									# Pre-allocate relational dataset based on local data use
-		Xr = zeros(model.size_out*l+m, n)						#  - dimensions = relational variables number + local variable number
-		Xr[1:m,:] = X									#  - initialize (local) dimensions	
+		Xr = matrix_prealloc(n, model.size_out*l+m, obsdim, 0.0)
+		_Xr = datasubset(Xr, 1:m, oppdim(obsdim))
+		_Xr[:] = X									#  - initialize (local) dimensions	
 		offset = m
 	else											# Skip local dataset dimensions
-		Xr = zeros(model.size_out*l, n)				
+		Xr = matrix_prealloc(n, model.size_out*l, obsdim, 0.0)
 		offset = 0
 	end
 
 
 	# Step 1: Apply local model, initialize output
 	@print_verbose 2 "Executing local model ..."
-	Xl = model.fl_exec(model.Ml, X[:,update])
-	@assert size(Xo,1) == size(Xl,1) "Local model outputs $(size(Xl,1)) estimates/obs, the output indicates $(size(Xo,1))." 	
-	Xo[:,update] = Xl 
+	Xl = model.fl_exec(model.Ml, getobs(datasubset(X, update, obsdim)))
+	@assert nvars(Xo,obsdim) == nvars(Xl,obsdim) "Local model outputs $(nvars(Xl,obsdim)) estimates/obs, the output indicates $(nvars(Xo,obsdim))." 	
+	_Xo = datasubset(Xo, update, obsdim);
+	_Xo[:] = Xl 
 
 	# Step 2: Apply collective inference
 	@print_verbose 2 "Collective inference ..."
-	transform!(Xo, model.Ci, model.Mr, model.fr_exec, model.RL, model.Adj, offset, Xr, update)	
+	transform!(Xo, model.Ci, model.obsdim, model.Mr, model.fr_exec, model.RL, model.Adj, offset, Xr, update)	
 	
 
 	# Step 3: Return output estimates

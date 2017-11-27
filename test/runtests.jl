@@ -1,7 +1,7 @@
 using NetworkLearning
 using LightGraphs: Graph,add_edge! 
 using SimpleWeightedGraphs: SimpleWeightedGraph
-
+using LearnBase:ObsDim, ObsDimension
 if (VERSION > v"0.7-")
 	using Test
 end

@@ -1,3 +1,76 @@
+#################################################################
+###### Functionality related to observation dimensionality ######
+#################################################################
+		# Note: The functions are designed to work on two 
+		# dimensional data containers (i.e. matrices)
+
+# Opposide dimension function
+"""
+	oppdim(::LearnBase.ObsDimension)
+
+Returns the other dimension for a matrix i.e. if provided `ObsDim.Constant{1}` 
+returns `ObsDim.Constant{2}`.
+"""
+oppdim(::ObsDim.First) = ObsDim.Constant{2}()
+oppdim(::ObsDim.Last) = ObsDim.First()
+oppdim(::ObsDim.Constant{2}) = ObsDim.Constant{1}()
+
+
+
+# get integer dimension
+"""
+	intdim(::LearnBase.ObsDimension)
+
+Returns the integer associated to a dimension object 
+i.e. `intdim(ObsDim.Constant{3})`  returns `3`. 
+The function is designed to work on matices so 
+`intdim(::ObsDim.Last)` will return `2`.
+"""
+intdim(::ObsDim.First) = 1 
+intdim(::ObsDim.Last) = 2
+intdim(::ObsDim.Constant{N}) where N = N
+
+
+
+# nvars function
+"""
+Returns the number of variables given a data object which 
+supports the `nobs` function. The data object must ideally 
+present two dimensions i.e. matrix.
+"""
+nvars(X, arg) = nobs(X,oppdim(arg))
+
+
+
+# pre-allocation
+"""
+	matrix_prealloc(no, nv, obsdim, val)
+
+Returns a `Matrix{T}` filled with values equal to `val::T`, having
+the size `no` (number of observations) on dimension `obsdim` and 
+`nv` (number of variables) in the other dimension.
+"""
+function matrix_prealloc(no::Int, nv::Int, obsdim::O, val::T=zero(T)) where {
+		T,O <:LearnBase.ObsDimension}
+	# get dimensions (inner function)
+	_getdims_(no, nv, ::ObsDim.First) = no, nv
+	_getdims_(no, nv, ::ObsDim.Last) = nv, no
+	_getdims_(no, nv, ::ObsDim.Constant{2}) = nv, no
+	_getdims_(no, nv, ::ObsDim.Undefined) = error("Undefined observation dimension") 
+		
+	m,n = _getdims_(no, nv, obsdim)
+	M = Array{T}(m,n)
+	fill!(M,val)
+
+	return M
+end
+
+
+
+#################################################################
+################# Additional utility functions ##################
+#################################################################
+
 # Function that calculates the number of  relational variables / each adjacency structure
 get_size_out(y::AbstractVector{T}) where T<:Float64 = 1			# regression case
 get_size_out(y::AbstractVector{T}) where T = length(unique(y))::Int	# classification case
@@ -85,6 +158,8 @@ function generate_partial_adjacency(cited::T, citing::T, useidx::S) where {T<:Ab
 	end
 	return W
 end
+
+
 
 macro print_verbose(level, message)
 	esc( :(
