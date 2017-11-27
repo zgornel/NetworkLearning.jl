@@ -246,18 +246,19 @@ function transform!(Xr::T, Rl::ClassDistributionRNColumnMajor, Am::M, X::S, ŷ:
 
 	return Xr
 end
-#=
+
 function transform!(Xr::T, Rl::ClassDistributionRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	d = Distances.Euclidean()
 	Xtmp = At_mul_B(Am,X)
 	Xtmp ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum	
-	Xr = Distances.pairwise(d, Rl.RV, Xtmp')	
+	Xtmp = Distances.pairwise(d, Rl.RV, Xtmp')	
 	
+	Xr[:] = Xtmp'
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),1)
+		Xr ./= sum(Xr.+eps(),2)
 	end
 
-	return Xr'
+	return Xr
 end
-=#
+
