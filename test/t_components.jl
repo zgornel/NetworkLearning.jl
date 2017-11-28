@@ -188,6 +188,24 @@ for li in 1:length(LEARNER)
 	Test.@test Xon ≈ (Xo./sum(Xo,1))		# normalization validation
 end
 
+# Test show methods
+for li in 1:length(LEARNER)
+	rl = fit(LEARNER[li], Ad, X', y; obsdim=ObsDim.Constant{1}())
+	Test.@test try 
+		show(IOBuffer(), rl)
+		true
+	catch
+		false
+	end
+	rl = fit(LEARNER[li], Ad, X, y; obsdim=ObsDim.Constant{2}())
+	Test.@test try 
+		show(IOBuffer(), rl)
+		true
+	catch
+		false
+	end
+end
+
 
 
 ###################################

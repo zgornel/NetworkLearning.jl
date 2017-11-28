@@ -273,7 +273,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 			# Update estimates
 			Xoⱼ[:] = fr_exec(Mr, Xrⱼ) 
 			ŷⱼ[:] = f_targets(Xoⱼ)
-			cⱼ[_idx_(ŷⱼ)].+=1.0
+			cⱼ[_idx_(ŷⱼ)]+=1.0
 		end
 		
 		# Convergence check

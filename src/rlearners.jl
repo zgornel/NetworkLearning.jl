@@ -81,11 +81,11 @@ Base.show(io::IO, vrl::T) where T<:AbstractVector{S} where S<:AbstractRelational
 
 
 # Training methods (all fit mehods use the same unique signature)
-fit(::Type{SimpleRN}, args...; obsdim::T=ObsDim.Constant{2}, priors::Vector{Float64}=Float64[], 
+fit(::Type{SimpleRN}, args...; obsdim::T=ObsDim.Constant{2}(), priors::Vector{Float64}=Float64[], 
     		normalize::Bool=true) where T<:LearnBase.ObsDimension =
 	SimpleRN(obsdim, normalize)
 
-fit(::Type{WeightedRN}, args...; obsdim::T=ObsDim.Constant{2}, priors::Vector{Float64}=Float64[], 
+fit(::Type{WeightedRN}, args...; obsdim::T=ObsDim.Constant{2}(), priors::Vector{Float64}=Float64[], 
     		normalize::Bool=true) where T<:LearnBase.ObsDimension =
 	WeightedRN(obsdim, normalize)
 
@@ -105,7 +105,7 @@ begin
 	@inbounds @simd for c in 1:C
 		LM[:,c] = mean(H[:,y.==c],2)
 	end
-	
+
 	BayesRN(obsdim, priors, normalize, LM)
 end
 
@@ -200,10 +200,10 @@ function transform!(Xr::T, Rl::BayesRNColumnMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	Xt = zero(Xr)				# initialize temporary output relational data with 0
 	Sw = clamp!(sum(Am,1),1.0,Inf)		# sum all edge weights for all nodes
-	Swi = zeros(1,nobs(X))
+	Swi = zero(Sw)
 	@inbounds @simd for i in 1:size(Xt,1)
 		Swi = sum(Am[ŷ.==i,:],1)./Sw 	# get normalized sum of edges of neighbours in class 'i', for all nodes
-		Xt +=log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples 
+		Xt += log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples 
 	end
 		
 	Xt = Xt.+ Rl.priors
@@ -213,25 +213,26 @@ function transform!(Xr::T, Rl::BayesRNColumnMajor, Am::M, X::S, ŷ::U) where {
 	end
 	return Xr
 end
-#=
+
 function transform!(Xr::T, Rl::BayesRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
-	Xt = zero(Xr)				# initialize temporary output relational data with 0
+		
+	Xt = zeros(size(Xr,2), size(Xr,1))	# initialize temporary output relational data with 0
 	Sw = clamp!(sum(Am,1),1.0,Inf)		# sum all edge weights for all nodes
-	Swi = zeros(1,nobs(X))
+	Swi = zero(Sw)
 	@inbounds @simd for i in 1:size(Xt,1)
 		Swi = sum(Am[ŷ.==i,:],1)./Sw 	# get normalized sum of edges of neighbours in class 'i', for all nodes
-		Xt +=log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples 
+		Xt += log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples 
 	end
-		
+
 	Xt = Xt.+ Rl.priors
-	Xr[:] = Xt
+	Xr[:] = Xt'
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),1)
+		Xr ./= sum(Xr.+eps(),2)
 	end
 	return Xr
 end
-=#
+
 function transform!(Xr::T, Rl::ClassDistributionRNColumnMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	d = Distances.Euclidean()

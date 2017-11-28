@@ -1,6 +1,6 @@
 # NetworkLearning
 
-A Julia package for networking learning.
+A Julia package for network learning.
 
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) 
 [![Build Status](https://travis-ci.org/zgornel/NetworkLearning.jl.svg?branch=master)](https://travis-ci.org/zgornel/NetworkLearning.jl) 
@@ -305,7 +305,8 @@ The documentation is provided in Julia's native docsystem.
 
 ## Installation
 
-The package can be installed by running `Pkg.clone("https://github.com/zgornel/NetworkLearning.jl")` in the Julia REPL.
+The package can be installed by running `Pkg.add("NetworkLearning")` or, to check out the latest version,
+`Pkg.checkout("NetworkLearning.jl")` in the Julia REPL.
 
 
 

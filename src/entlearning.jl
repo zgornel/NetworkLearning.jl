@@ -69,8 +69,8 @@ Training method for the network learning framework.
 """
 function fit(::Type{NetworkLearnerEnt}, Xo::AbstractMatrix, update::BitVector, Adj::A where A<:Vector{<:AbstractAdjacency}, 
 	     	fr_train, fr_exec; 
-		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), learner::Symbol=:wvrn, inference::Symbol=:rl, 
-		normalize::Bool=true, f_targets::Function=x->targets(indmax,x), obsdim::Int=2, 
+		learner::Symbol=:wvrn, inference::Symbol=:rl, normalize::Bool=true, f_targets::Function=x->targets(indmax,x), 
+		obsdim::Int=2, priors::Vector{Float64}=1/nvars(Xo,ObsDim.Constant(obsdim)).*ones(nvars(Xo,ObsDim.Constant(obsdim))),
 		tol::Float64=1e-6, κ::Float64=1.0, α::Float64=0.99, maxiter::Int=100, bratio::Float64=0.1) 
 
 	# Parse, transform input arguments
@@ -119,8 +119,8 @@ end
 Training method for the network learning framework. This method should not be called directly.
 """
 function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R, Ci::C, fr_train::U, fr_exec::U2; 
-		priors::Vector{Float64}=1/size(Xo,1).*ones(size(Xo,1)), normalize::Bool=true, 
-		obsdim::LearnBase.ObsDimension=ObsDim.Constant{2}()) where {
+	    	normalize::Bool=true, obsdim::LearnBase.ObsDimension=ObsDim.Constant{2}(),
+	    	priors::Vector{Float64}=1/nvars(Xo,obsdim).*ones(nvars(Xo,obsdim)) ) where {
 			T<:AbstractMatrix, 
 			A<:Vector{<:AbstractAdjacency}, 
 			R<:Type{<:AbstractRelationalLearner}, 
@@ -155,7 +155,8 @@ function fit(::Type{NetworkLearnerEnt}, Xo::T, update::BitVector, Adj::A, Rl::R,
 		transform!(Xrᵢ, RLᵢ, Aᵢₜ, Xoₜ, yₜ)
 
 		# Update relational data output		
-		Xrₜ[(i-1)*p+1 : i*p, :] = Xrᵢ									
+		_Xrₜ = datasubset(Xrₜ, (i-1)*p+1 : i*p, oppdim(obsdim))
+		_Xrₜ[:] = Xrᵢ		
 	end
 	
 
