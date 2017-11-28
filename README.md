@@ -291,12 +291,6 @@ The output of the above code is:
 
 
 
-## Planned features
-	
-- Support for both column-major and row-major datasets; so far, only column-major datasets supported (i.e. observations correspond to columns in the input/output matrices)
-- Implement optional parallelism (where feasible)
-
-
 ## Documentation
 
 The documentation is provided in Julia's native docsystem. 
