@@ -63,6 +63,7 @@ module NetworkLearning
 		strip_adjacency,
 		adjacency_matrix,
 		adjacency_graph,
+		adjacency_obs,
 		intdim, 
 		oppdim, 
 		matrix_prealloc

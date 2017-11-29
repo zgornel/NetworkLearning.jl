@@ -226,3 +226,8 @@ adjacency_matrix(f::T, data::S) where {T,S} = adjacency_matrix(f(data))
 ### TO REMOVE when division broadcast bug for sparse matrices is pulled ###
 adjacency_matrix(am::T) where T <:SparseMatrixCSC = Matrix(am)#############	
 ###########################################################################
+
+adjacency_obs(A::DenseMatrix, r::UnitRange, obsdim::ObsDim.Constant{2}) = view(A,:,r)
+adjacency_obs(A::DenseMatrix, r::UnitRange, obsdim::ObsDim.Constant{1}) = view(A,r,:)
+adjacency_obs(A::SparseMatrixCSC, r::UnitRange, obsdim::ObsDim.Constant{2}) = A[:,r]
+adjacency_obs(A::SparseMatrixCSC, r::UnitRange, obsdim::ObsDim.Constant{1}) = A[r,:]
