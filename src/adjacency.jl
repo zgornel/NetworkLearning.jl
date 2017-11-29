@@ -221,3 +221,8 @@ adjacency_matrix(am::T) where T <:AbstractMatrix = am
 adjacency_matrix(ag::T) where T <:AbstractGraph = sparse(ag)
 adjacency_matrix(ag::T) where T <:AbstractSimpleWeightedGraph = weights(ag)
 adjacency_matrix(f::T, data::S) where {T,S} = adjacency_matrix(f(data))
+
+###########################################################################
+### TO REMOVE when division broadcast bug for sparse matrices is pulled ###
+adjacency_matrix(am::T) where T <:SparseMatrixCSC = Matrix(am)#############	
+###########################################################################

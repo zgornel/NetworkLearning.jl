@@ -114,11 +114,11 @@ fit(::Type{ClassDistributionRN}, Ai::AbstractAdjacency, Xl::AbstractMatrix, y::A
 		priors::Vector{Float64}=ones(nvars(Xl,obsdim)), normalize::Bool=true) = 
 begin
 	yu = sort(unique(y))
-	n = length(priors)
+	n = nvars(Xl,obsdim)
 	RV = zeros(n,n) 			# RV is a matrix where columns correspond to the class vectors of each class;
 	
 	# Calculate reference vectors (matrix where each column is a reference vector)
-	Am = adjacency_matrix(Ai)
+	Am = adjacency_matrix(Ai)		
 	if obsdim isa ObsDim.Constant{2}
 		Xtmp = Xl * adjacency_matrix(Am)
 	else
@@ -126,6 +126,7 @@ begin
 	end
 	
 	Xtmp ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum	
+	
 	@inbounds @simd for i in 1:n
 		RV[:,i] = mean(view(Xtmp,:,y.==yu[i]),2)
 	end
@@ -187,8 +188,8 @@ end
 
 function transform!(Xr::T, Rl::WeightedRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
-	Xr[:] = At_mul_B(Am,X)			# summate edge weighted probabilities of all neighbors
-	Xr ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum
+	Xr[:] = Am*X 				# summate edge weighted probabilities of all neighbors
+	Xr ./= clamp!(sum(Am,2),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
 		Xr ./= sum(Xr.+eps(),2)
