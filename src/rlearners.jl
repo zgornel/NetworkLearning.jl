@@ -251,8 +251,8 @@ end
 function transform!(Xr::T, Rl::ClassDistributionRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	d = Distances.Euclidean()
-	Xtmp = At_mul_B(Am,X)
-	Xtmp ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum	
+	Xtmp = Am * X
+	Xtmp ./= clamp!(sum(Am,2),1.0,Inf)	# normalize to edge weight sum	
 	Xtmp = Distances.pairwise(d, Rl.RV, Xtmp')	
 	
 	Xr[:] = Xtmp'
@@ -262,4 +262,3 @@ function transform!(Xr::T, Rl::ClassDistributionRNRowMajor, Am::M, X::S, ŷ::U)
 
 	return Xr
 end
-

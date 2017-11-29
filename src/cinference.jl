@@ -145,9 +145,10 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, obsdim::OD, Mr::M
 
 			# Obtain relational data for the current observation
 			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
-
+				
 				# Apply relational learner
-				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
+				Aᵢⱼ = getobs(datasubset(Aᵢ, rⱼ, obsdim))
+				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
 				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
@@ -224,7 +225,8 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 
 				# Apply relational learner
-				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
+				Aᵢⱼ = getobs(datasubset(Aᵢ, rⱼ, obsdim))
+				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
 				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
@@ -242,7 +244,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 	
 	# Small function that makes the class count work (even though it does not make sense)
 	# for cases outside classification (i.e. input labels are floats)
-	_idx_(x::AbstractVector{Int}) = x
+	_idx_(x::AbstractVector{Int}) = x[1]
 	_idx_(x::AbstractVector) = 1
 	# Iterate
 	@print_verbose 2 "\tRunning $maxiter iterations ..."
@@ -263,7 +265,8 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 
 				# Apply relational learner
-				transform!(Xrᵢⱼ, RLᵢ, Aᵢ[:,rⱼ], Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
+				Aᵢⱼ = getobs(datasubset(Aᵢ, rⱼ, obsdim))
+				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
 				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
