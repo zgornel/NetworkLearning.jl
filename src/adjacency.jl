@@ -206,6 +206,7 @@ adjacency_graph(ag::T) where T <:AbstractGraph = ag
 adjacency_graph(f::T, data::S) where {T,S} = adjacency_graph(f(data))
 
 
+
 # Return an adjacency matrix from Adjacency types
 """
 	adjacency_matrix(a)
@@ -222,12 +223,14 @@ adjacency_matrix(ag::T) where T <:AbstractGraph = sparse(ag)
 adjacency_matrix(ag::T) where T <:AbstractSimpleWeightedGraph = weights(ag)
 adjacency_matrix(f::T, data::S) where {T,S} = adjacency_matrix(f(data))
 
-###########################################################################
-### TO REMOVE when division broadcast bug for sparse matrices is pulled ###
-#adjacency_matrix(am::T) where T <:SparseMatrixCSC = Matrix(am)#############	
-###########################################################################
 
-adjacency_obs(A::T where T<:AbstractMatrix, r::S where S<:UnitRange, obsdim::ObsDim.Constant{2}) = view(A,:,r)
-adjacency_obs(A::T where T<:AbstractMatrix, r::S where S<:UnitRange, obsdim::ObsDim.Constant{1}) = view(A,r,:)
-adjacency_obs(A::T where T<:SparseMatrixCSC, r::S where S<:UnitRange, obsdim::ObsDim.Constant{2}) = A[:,r]
-adjacency_obs(A::T where T<:SparseMatrixCSC, r::S where S<:UnitRange, obsdim::ObsDim.Constant{1}) = A[r,:]
+
+"""
+	adjacency_obs(A, r, obsdim)
+
+Selects a range `r::UnitRange` of observations from the matrix `A`, along the dimension `obsdim::LearnBase.ObsDimension`.
+"""
+adjacency_obs(A::T where T<:AbstractMatrix, r::S where S<:UnitRange, ::ObsDim.Constant{2}) = view(A,:,r)
+adjacency_obs(A::T where T<:AbstractMatrix, r::S where S<:UnitRange, ::ObsDim.Constant{1}) = view(A,r,:)
+adjacency_obs(A::T where T<:SparseMatrixCSC, r::S where S<:UnitRange, ::ObsDim.Constant{2}) = A[:,r]
+adjacency_obs(A::T where T<:SparseMatrixCSC, r::S where S<:UnitRange, ::ObsDim.Constant{1}) = A[r,:]

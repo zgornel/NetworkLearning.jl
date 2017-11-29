@@ -46,7 +46,6 @@ Gw_Adj = adjacency(Gw)
 Test.@test Gw_Adj isa GraphAdjacency
 Test.@test Gw_Adj.ag == Gw
 
-
 C_Adj = adjacency(f(n), data)
 Test.@test C_Adj isa ComputableAdjacency
 Test.@test C_Adj.f == f(n)
@@ -80,6 +79,14 @@ Test.@test adjacency_matrix(A_Adj) == Ai
 Test.@test adjacency_matrix(G_Adj) == Ai
 Test.@test adjacency_matrix(Gw_Adj) == A
 Test.@test adjacency_matrix(C_Adj) == A
+
+r=1:1
+As = sparse(A)
+Test.@test adjacency_obs(A, r, ObsDim.Constant{1}()) == view(A,r,:)
+Test.@test adjacency_obs(A, r, ObsDim.Constant{2}()) == view(A,:,r)
+Test.@test adjacency_obs(As, r, ObsDim.Constant{1}()) == As[r,:]
+Test.@test adjacency_obs(As, r, ObsDim.Constant{2}()) == As[:,r]
+
 
 # Test show methods
 buf = IOBuffer()

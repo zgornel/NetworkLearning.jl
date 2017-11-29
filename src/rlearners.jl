@@ -118,7 +118,7 @@ begin
 	RV = zeros(n,n) 			# RV is a matrix where columns correspond to the class vectors of each class;
 	
 	# Calculate reference vectors (matrix where each column is a reference vector)
-	Am = adjacency_matrix(Ai)		
+	Am = adjacency_matrix(Ai)
 	if obsdim isa ObsDim.Constant{2}
 		Xtmp = Xl * adjacency_matrix(Am)
 	else
@@ -177,7 +177,7 @@ end
 
 function transform!(Xr::T, Rl::WeightedRNColumnMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
-	Xr[:] = X*Am				# summate edge weighted probabilities of all neighbors
+	A_mul_B!(Xr, X, Am)			# summate edge weighted probabilities of all neighbors
 	Xr ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
@@ -188,8 +188,8 @@ end
 
 function transform!(Xr::T, Rl::WeightedRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
-	Xr[:] = Am*X 				# summate edge weighted probabilities of all neighbors
-	Xr ./= clamp!(sum(Am,2),1.0,Inf)	# normalize to edge weight sum
+	At_mul_B!(Xr, Am, X)			# summate edge weighted probabilities of all neighbors
+	Xr ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
 		Xr ./= sum(Xr.+eps(),2)
@@ -252,8 +252,8 @@ end
 function transform!(Xr::T, Rl::ClassDistributionRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	d = Distances.Euclidean()
-	Xtmp = Am * X
-	Xtmp ./= clamp!(sum(Am,2),1.0,Inf)	# normalize to edge weight sum	
+	Xtmp = At_mul_B(Am,X)
+	Xtmp ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum	
 	Xtmp = Distances.pairwise(d, Rl.RV, Xtmp')	
 	
 	Xr[:] = Xtmp'

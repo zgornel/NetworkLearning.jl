@@ -129,7 +129,8 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, obsdim::OD, Mr::M
 	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
 	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
 	Xrᵢⱼ = matrix_prealloc(1, size_out, obsdim, 0.0)					# Initialize temporary storage	
-	
+	second_dim = ObsDim.Constant{2}()
+
 	# Iterate
 	for it in 1:maxiter	
 		shuffle!(ordering)								# Randomize observation order
@@ -144,12 +145,12 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, obsdim::OD, Mr::M
 			ŷⱼ = datasubset(ŷ, rⱼ)
 
 			# Obtain relational data for the current observation
-			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
-				
+			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))
+
 				# Apply relational learner
-				Aᵢⱼ = adjacency_obs(Aᵢ, rⱼ, obsdim)
-				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
-												#	slicing - increases the number of allocations.
+				Aᵢⱼ = adjacency_obs(Aᵢ, rⱼ, second_dim)
+				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ)
+												
 				# Update relational data output for the current sample
 				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
 				_Xrⱼ[:] = Xrᵢⱼ
@@ -207,6 +208,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 	ŷₒ = similar(ŷ)										#   and the 'previous' iteration estimates
 	AV = adjacency_matrix.(Adj)								# Pre-calculate adjacency matrices
 	Xrᵢⱼ = matrix_prealloc(1, size_out, obsdim, 0.0)					# Initialize temporary storage	
+	second_dim = ObsDim.Constant{2}()
 
 	# Burn-in
 	@print_verbose 2 "\tRunning $burniter burn-in iterations ..."
@@ -225,9 +227,9 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 
 				# Apply relational learner
-				Aᵢⱼ = adjacency_obs(Aᵢ, rⱼ, obsdim)
-				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
-												#	slicing - increases the number of allocations.
+				Aᵢⱼ = adjacency_obs(Aᵢ, rⱼ, second_dim)
+				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ)
+	
 				# Update relational data output for the current sample
 				_Xrⱼ = datasubset(Xrⱼ, offset+(i-1)*size_out+1 : offset+i*size_out, oppdim(obsdim))
 				_Xrⱼ[:] = Xrᵢⱼ
@@ -265,7 +267,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 			@inbounds for (i,(RLᵢ,Aᵢ)) in enumerate(zip(RL,AV))		
 
 				# Apply relational learner
-				Aᵢⱼ = adjacency_obs(Aᵢ, rⱼ, obsdim)
+				Aᵢⱼ = adjacency_obs(Aᵢ, rⱼ, second_dim)
 				transform!(Xrᵢⱼ, RLᵢ, Aᵢⱼ, Xo, ŷ) 				# TODO: Find a better compromise for adjacency access; views - slow for sparse matrices
 												#	slicing - increases the number of allocations.
 				# Update relational data output for the current sample
