@@ -19,7 +19,7 @@ module NetworkLearning
 	end
 	
 	# Verbosity level, used for debugging: 
-	# 0 - off, 1 - minimal, 2 - normal (all messages) 
+	# 0 - off, 1 - minimal (i.e. warnings, convergence information), 2 - maximum (i.e. iteration details) 
 	global const VERBOSE = 0 
 
 	# Exports

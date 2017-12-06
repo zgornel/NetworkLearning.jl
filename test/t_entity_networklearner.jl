@@ -5,8 +5,8 @@ function t_entity_networklearner()
 # Test the entity-based NetworkLearner  #
 #########################################
 N= 100							# Number of entitites 
-inferences = [:ic, :rl, :gs]				# Collective inferences
-rlearners = [:rn, :wrn, :bayesrn]			# Relational learners
+inferences = [:ic, :rl, :gs, :unknown]			# Collective inferences
+rlearners = [:rn, :wrn, :bayesrn, :unknown]		# Relational learners
 nAdj = 2						# Number of adjacencies to generate	
 X = rand(1,N); 						# Training data
 
@@ -101,6 +101,13 @@ end
 buf = IOBuffer()
 Test.@test try
 	show(buf,nlmodel)
+	true
+catch
+	false
+end
+
+Test.@test try
+	show(buf,NetworkLearning.NetworkLearnerState(rand(2,2), trues(2), ObsDim.Constant{2}()))
 	true
 catch
 	false

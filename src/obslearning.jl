@@ -101,7 +101,7 @@ function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj
 	elseif learner == :bayesrn
 		Rl = BayesRN
 	else
-		warn("Unknown relational learner. Defaulting to :wrn.")
+		@print_verbose 1 "Unknown relational learner. Defaulting to :wrn."
 		Rl = WeightedRN
 	end
 
@@ -113,7 +113,7 @@ function fit(::Type{NetworkLearnerObs}, X::AbstractMatrix, y::AbstractArray, Adj
 	elseif inference == :gs
 		Ci = GibbsSamplingInferer(maxiter, tol, f_targets, ceil(Int, maxiter*bratio))
 	else
-		warn("Unknown collective inferer. Defaulting to :rl.")
+		@print_verbose 1 "Unknown collective inferer. Defaulting to :rl."
 		Ci = RelaxationLabelingInferer(maxiter, tol, f_targets, κ, α)
 	end
 	
