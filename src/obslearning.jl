@@ -50,8 +50,8 @@ end
 Training method for the observation-based network learning framework.
 
 # Arguments
-  * `X::AbstractMatrix` training data (used by `fl_train`, `fl_exec`; is `use_local_data==true`, used by `fr_train`)
-  * `Y::AbstractAray` data targets (used by `fl_train`, `fl_exec`; is `use_local_data==true`, used by `fr_train`)
+  * `X::AbstractMatrix` training data (used by `fl_train`, `fl_exec`; if `use_local_data==true`, it is also used by `fr_train`)
+  * `Y::AbstractAray` data targets (used by `fl_train`, `fr_train`)
   * `Adj::Vector{AbstractAdjacency}` a vector containing the observation relational structures (adjacency objects)
   * `fl_train` local model training 'function'; can be anything that supports the call `fl_train((X,y))`
   * `fl_exec` local model prediction 'function'; can be anything that supports the call `fl_exec(Ml,X)` where `Ml = fl_train((X,y))`
