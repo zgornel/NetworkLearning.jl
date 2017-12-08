@@ -3,15 +3,16 @@
 A Julia package for network learning.
 
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) 
+[![NetworkLearning](http://pkg.julialang.org/badges/NetworkLearning_0.6.svg)](http://pkg.julialang.org/detail/NetworkLearning)
 [![Build Status](https://travis-ci.org/zgornel/NetworkLearning.jl.svg?branch=master)](https://travis-ci.org/zgornel/NetworkLearning.jl) 
 [![Coverage Status](https://coveralls.io/repos/github/zgornel/NetworkLearning.jl/badge.svg?branch=master)](https://coveralls.io/github/zgornel/NetworkLearning.jl?branch=master)
 
 ## Introduction
 
-NetworkLearning implements a generic framework for network classification. It could in theory be used for other functionality such as regression and density estimation,
+NetworkLearning implements a generic framework for network classification. It could in theory be used to provide additional functionality (i.e. semi-supervised learning, regression),
 provided that appropriate methods for relational learning (i.e. relational variable generation) and collective inference are added. The framework is designed to make as little assumptions as possible on the elements involved in the process.  
 
-Two scenarios for network learning can be distinguished:
+Two scenarios or usecases are covered:
 
 - *Observation-based learning*, in which the network structure is pertinent to the observations and consequently, estimates (i.e. class probabilities) are associated to the observations; in the estimation process, relational structures can either make use the training data (in-graph learning) or not (out-of-graph learning). For example, in the case of document classifcation, an observation would correspond to a publication that has to be classified into an arbitrary category, given a representation of its local content-based information as well on the its relational information (links to other documents, citations etc.).  
 
