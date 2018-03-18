@@ -95,15 +95,15 @@ fit(::Type{BayesRN}, Ai::AbstractAdjacency, Xl::AbstractMatrix, y::AbstractVecto
 begin
 	C = nvars(Xl,obsdim)
 	@assert C == length(priors) "Size of local model estimates is $(C) and prior vector length is $(length(priors))."
-	
+
 	# Get for each observation class percentages in neighbourhood
 	Am = adjacency_matrix(Ai)
-	H = vcat((sum(Am[y.==i,:],1) for i in 1:C)...)./clamp!(sum(Am,1),1.0,Inf) 
+	H = vcat((sum(Am[y.==i,:], dims=1) for i in 1:C)...) ./clamp!(sum(Am, dims=1),1.0,Inf)
 	
 	# Calculate the means of neighbourhood class percentages for all samples belonging to the same class 
 	LM = zeros(C,C)
 	@inbounds @simd for c in 1:C
-		LM[:,c] = mean(H[:,y.==c],2)
+		LM[:,c] = mean(H[:,y.==c], dims=2)
 	end
 
 	BayesRN(obsdim, priors, normalize, LM)
@@ -125,10 +125,10 @@ begin
 		Xtmp = (adjacency_matrix(Am) * Xl)'
 	end
 	
-	Xtmp ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum	
+	Xtmp ./= clamp!(sum(Am, dims=1),1.0,Inf)# normalize to edge weight sum
 	
 	@inbounds @simd for i in 1:n
-		RV[:,i] = mean(view(Xtmp,:,y.==yu[i]),2)
+		RV[:,i] = mean(view(Xtmp,:,y.==yu[i]), dims=2)
 	end
 	
 	return ClassDistributionRN(obsdim, normalize, RV)
@@ -152,12 +152,12 @@ end
 function transform!(Xr::T, Rl::SimpleRNColumnMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	for i in 1:size(Xr,1)
-		Xr[i,:] = At_mul_B(ŷ.==i, Am)	# summate edge weights for neighbours in class 'i'  
+		Xr[i,:] = transpose(ŷ.==i) * Am	# summate edge weights for neighbours in class 'i'
 	end
-	Xr ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum	
+	Xr ./= clamp!(sum(Am, dims=1),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),1)
+		Xr ./= sum(Xr.+eps(), dims=1)
 	end
 	return Xr
 end
@@ -165,34 +165,34 @@ end
 function transform!(Xr::T, Rl::SimpleRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	for i in 1:size(Xr,2)
-		Xr[:,i] = At_mul_B((ŷ.==i), Am)	# summate edge weights for neighbours in class 'i'  
+		Xr[:,i] = transpose(ŷ.==i) * Am	# summate edge weights for neighbours in class 'i'
 	end
-	Xr ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum	
+	Xr ./= clamp!(vec(sum(Am, dims=1)),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),2)
+		Xr ./= sum(Xr.+eps(), dims=2)
 	end
 	return Xr
 end
 
 function transform!(Xr::T, Rl::WeightedRNColumnMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
-	A_mul_B!(Xr, X, Am)			# summate edge weighted probabilities of all neighbors
-	Xr ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum
+	mul!(Xr, X, Am)				# summate edge weighted probabilities of all neighbors
+	Xr ./= clamp!(sum(Am, dims=1),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),1)
+		Xr ./= sum(Xr.+eps(), dims=1)
 	end
 	return Xr
 end
 
 function transform!(Xr::T, Rl::WeightedRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
-	At_mul_B!(Xr, Am, X)			# summate edge weighted probabilities of all neighbors
-	Xr ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum
+	mul!(Xr, transpose(Am), X)		# summate edge weighted probabilities of all neighbors
+	Xr ./= clamp!(vec(sum(Am, dims=1)),1.0,Inf)	# normalize to edge weight sum
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),2)
+		Xr ./= sum(Xr.+eps(), dims=2)
 	end
 	return Xr
 end
@@ -200,17 +200,17 @@ end
 function transform!(Xr::T, Rl::BayesRNColumnMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	Xt = zero(Xr)				# initialize temporary output relational data with 0
-	Sw = clamp!(sum(Am,1),1.0,Inf)		# sum all edge weights for all nodes
+	Sw = clamp!(sum(Am, dims=1),1.0,Inf)	# sum all edge weights for all nodes
 	Swi = zero(Sw)
 	@inbounds @simd for i in 1:size(Xt,1)
-		Swi = sum(Am[ŷ.==i,:],1)./Sw 	# get normalized sum of edges of neighbours in class 'i', for all nodes
-		Xt += log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples 
+		Swi = sum(Am[ŷ.==i,:], dims=1)./Sw	# get normalized sum of edges of neighbours in class 'i', for all nodes
+		Xt += log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples
 	end
 		
 	Xt = Xt.+ Rl.priors
 	Xr[:] = Xt
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),1)
+		Xr ./= sum(Xr.+eps(), dims=1)
 	end
 	return Xr
 end
@@ -219,17 +219,17 @@ function transform!(Xr::T, Rl::BayesRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 		
 	Xt = zeros(size(Xr,2), size(Xr,1))	# initialize temporary output relational data with 0
-	Sw = clamp!(sum(Am,1),1.0,Inf)		# sum all edge weights for all nodes
+	Sw = clamp!(sum(Am, dims=1),1.0,Inf)	# sum all edge weights for all nodes
 	Swi = zero(Sw)
 	@inbounds @simd for i in 1:size(Xt,1)
-		Swi = sum(Am[ŷ.==i,:],1)./Sw 	# get normalized sum of edges of neighbours in class 'i', for all nodes
-		Xt += log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples 
+		Swi = sum(Am[ŷ.==i,:], dims=1)./Sw	# get normalized sum of edges of neighbours in class 'i', for all nodes
+		Xt += log1p.(Rl.LM[:,i])*Swi	# add weighted class 'i' log likelihoods for all samples
 	end
 
 	Xt = Xt.+ Rl.priors
 	Xr[:] = Xt'
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),2)
+		Xr ./= sum(Xr.+eps(), dims=2)
 	end
 	return Xr
 end
@@ -238,12 +238,12 @@ function transform!(Xr::T, Rl::ClassDistributionRNColumnMajor, Am::M, X::S, ŷ:
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	d = Distances.Euclidean()
 	Xtmp = X*Am
-	Xtmp ./= clamp!(sum(Am,1),1.0,Inf)	# normalize to edge weight sum	
+	Xtmp ./= clamp!(sum(Am, dims=1),1.0,Inf)# normalize to edge weight sum
 		
 	Distances.pairwise!(Xr, d, Rl.RV, Xtmp)	
 	
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),1)
+		Xr ./= sum(Xr.+eps(), dims=1)
 	end
 
 	return Xr
@@ -252,13 +252,13 @@ end
 function transform!(Xr::T, Rl::ClassDistributionRNRowMajor, Am::M, X::S, ŷ::U) where {
 		T<:AbstractMatrix, M<:AbstractMatrix, S<:AbstractMatrix, U<:AbstractVector}	
 	d = Distances.Euclidean()
-	Xtmp = At_mul_B(Am,X)
-	Xtmp ./= clamp!(vec(sum(Am,1)),1.0,Inf)	# normalize to edge weight sum	
+	Xtmp = transpose(Am) * X
+	Xtmp ./= clamp!(vec(sum(Am, dims=1)),1.0,Inf)	# normalize to edge weight sum
 	Xtmp = Distances.pairwise(d, Rl.RV, Xtmp')	
 	
 	Xr[:] = Xtmp'
 	if Rl.normalize				# normalize estimates / observation
-		Xr ./= sum(Xr.+eps(),2)
+		Xr ./= sum(Xr.+eps(), dims=2)
 	end
 
 	return Xr

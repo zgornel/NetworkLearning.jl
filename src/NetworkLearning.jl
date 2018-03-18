@@ -1,4 +1,4 @@
-# Network learning
+# Network Learning
 VERSION >= v"0.6" && __precompile__(true)
 
 """
@@ -12,11 +12,13 @@ provided that appropriate methods for relational learning (i.e. relational varia
 """
 module NetworkLearning
 	
-	using LearnBase, MLDataPattern, MLLabelUtils, LightGraphs, SimpleWeightedGraphs, Distances
-
-	if VERSION >= v"0.7.0-"
-		using DelimitedFiles:readdlm
-	end
+	using LinearAlgebra, SparseArrays
+	using Distances
+	using LearnBase, MLDataPattern, MLLabelUtils
+	using LightGraphs, SimpleWeightedGraphs
+	using Random: shuffle!
+	using DelimitedFiles: readdlm
+	using Future: copy!
 	
 	# Verbosity level, used for debugging: 
 	# 0 - off, 1 - minimal (i.e. warnings, convergence information), 2 - maximum (i.e. iteration details) 

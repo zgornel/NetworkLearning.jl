@@ -8,7 +8,7 @@ mutable struct NetworkLearnerObs{T,U,S,V,
 				    R<:Vector{<:AbstractRelationalLearner},
 				    C<:AbstractCollectiveInferer,
 				    A<:Vector{<:AbstractAdjacency},
-				    L<:Union{Void, MLLabelUtils.LabelEncoding},
+				    L<:Union{Nothing, MLLabelUtils.LabelEncoding},
 				    OD<:LearnBase.ObsDimension} <: AbstractNetworkLearner 			 
 	Ml::T											# local model
 	fl_exec::U										# local model execution function
@@ -36,7 +36,7 @@ Base.show(io::IO, m::NetworkLearnerObs) = begin
 	print(io,"`- adjacency: "); println(io, m.Adj)	
 	println(io,"`- use local data: $(m.use_local_data)");
 	println(io,"`- observations are: $(m.obsdim == ObsDim.Constant{1} ? "rows" : "columns")");
-	println(io,"`- targets: $(m.target_enc isa Void ? "not encoded" : "encoded")");
+	println(io,"`- targets: $(m.target_enc isa Nothing ? "not encoded" : "encoded")");
 end
 
 

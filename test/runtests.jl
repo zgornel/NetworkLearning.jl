@@ -1,10 +1,12 @@
+using LinearAlgebra
+using SparseArrays
 using NetworkLearning
-using LightGraphs: Graph,add_edge! 
-using SimpleWeightedGraphs: SimpleWeightedGraph
+using LightGraphs: Graph, add_edge! 
+using SimpleWeightedGraphs.SimpleWeightedGraph
 using LearnBase:ObsDim, ObsDimension
-if (VERSION > v"0.7-")
-	using Test
-end
+using Test
+using Future: copy!
+using DelimitedFiles: readdlm
 
 # Test components
 include("t_components.jl")

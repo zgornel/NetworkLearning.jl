@@ -59,7 +59,7 @@ function matrix_prealloc(no::Int, nv::Int, obsdim::O, val::T=zero(T)) where {
 	_getdims_(no, nv, ::ObsDim.Undefined) = error("Undefined observation dimension") 
 		
 	m,n = _getdims_(no, nv, obsdim)
-	M = Array{T}(m,n)
+	M = Array{T}(undef, m,n)
 	fill!(M,val)
 
 	return M
@@ -151,7 +151,7 @@ function generate_partial_adjacency(cited::T, citing::T, useidx::S) where {T<:Ab
 	n = length(useidx)
 	W = zeros(n,n)
 	for i in 1:length(citing)
-	  if citing_idx[i] != 0 && cited_idx[i] != 0
+	  if citing_idx[i] != nothing && cited_idx[i] != nothing
 	      W[citing_idx[i],cited_idx[i]] += 1
 	      W[cited_idx[i],citing_idx[i]] += 1
 	  end

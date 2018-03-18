@@ -77,7 +77,7 @@ adjacency(ag::T) where T<:AbstractGraph = GraphAdjacency(ag)
 adjacency(f::T, data::S) where {T,S} = ComputableAdjacency(f,data)
 adjacency(t::Tuple{T,S}) where {T,S} = ComputableAdjacency(t[1],t[2])
 adjacency(f::T) where T<:Function = PartialAdjacency(f)
-adjacency(::Void) = EmptyAdjacency()
+adjacency(::Nothing) = EmptyAdjacency()
 adjacency() = EmptyAdjacency()
 
 	

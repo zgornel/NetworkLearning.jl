@@ -17,8 +17,12 @@ Ai = Int.(A)
 G = Graph(Ai)
 
 Gw = SimpleWeightedGraph(A)
+I = findall(!iszero, A)
+rows, cols = getindex.(I, 1), getindex.(I, 2)
 
-rows,cols = findn(A)
+
+
+
 data = [(i,j) for (i,j) in zip(rows,cols)]		# edges of A
 n = 5							# number of vertices
 f(n::Int, T=Int) = (data::Vector{Tuple{Int,Int}})->begin
@@ -192,7 +196,7 @@ for li in 1:length(LEARNER)
         transform!(Xo, rl, Ad, X, y);
         transform!(Xon, rln, Ad, X, y);
 	Test.@test all(abs.(Xo - result[li]) .<= tol);	# external validation
-	Test.@test Xon ≈ (Xo./sum(Xo,1))		# normalization validation
+	Test.@test Xon ≈ (Xo./sum(Xo, dims=1))		# normalization validation
 end
 
 # Test show methods

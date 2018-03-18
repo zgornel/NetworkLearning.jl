@@ -29,8 +29,8 @@ fl_train = (x)->mean(x[1]);
 fl_exec=(m,x)->x.-m;
 
 # Train and test methods for relational model
-fr_train=(x)->sum(x[1],2);
-fr_exec=(m,x)->sum(x.-m,1)
+fr_train=(x)->sum(x[1], dims=2);
+fr_exec=(m,x)->sum(x.-m, dims=1)
 amv = sparse.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj]));
 adv = adjacency.(amv); 
 
@@ -82,8 +82,8 @@ fl_train = (x)->mean(x[1]);
 fl_exec=(m,x)->x.-m;
 
 # Train and test methods for relational model
-fr_train=(x)->sum(x[1],1);
-fr_exec=(m,x)->sum(x.-m,2)
+fr_train=(x)->sum(x[1], dims=1);
+fr_exec=(m,x)->sum(x.-m, dims=2)
 amv = sparse.(Symmetric.([sprand(Float64, Ntrain,Ntrain, 0.5) for i in 1:nAdj]));
 adv = adjacency.(amv); 
 

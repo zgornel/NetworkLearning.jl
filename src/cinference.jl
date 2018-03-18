@@ -119,7 +119,7 @@ function transform!(Xo::T, Ci::IterativeClassificationInferer, obsdim::OD, Mr::M
 	
 	# Initializations
 	n = nobs(Xr,obsdim)									# number of observations 
-	ordering = [i:i for i in find(update)]							# observation estimation order 
+	ordering = [i:i for i in findall(update)]						# observation estimation order
 	maxiter = Ci.maxiter									# maximum number of iterations
 	tol = Ci.tol										# maximum error 
 	f_targets = Ci.tf									# function used to obtain targets
@@ -196,7 +196,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 	
 	# Initializations
 	n = nobs(Xr, obsdim)									# number of observations 
-	updateable = find(update)
+	updateable = findall(update)
 	ordering = [i:i for i in updateable]							# observation estimation order 
 	maxiter = Ci.maxiter									# maximum number of iterations
 	burniter = Ci.burniter									# number of burn-in iterations
@@ -293,7 +293,7 @@ function transform!(Xo::T, Ci::GibbsSamplingInferer, obsdim::OD, Mr::M, fr_exec:
 	# Assign new estimates
 	_Xo = datasubset(Xo, updateable, obsdim)
 	_cc = datasubset(class_counts, updateable, obsdim)
-	_Xo[:] = _cc ./ sum(_cc, intdim(oppdim(obsdim)))
+	_Xo[:] = _cc ./ sum(_cc, dims=intdim(oppdim(obsdim)))
 	
 	return Xo
 end
