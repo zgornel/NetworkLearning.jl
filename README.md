@@ -301,7 +301,8 @@ The documentation is provided in Julia's native docsystem.
 ## Installation
 
 The package can be installed by running `Pkg.add("NetworkLearning")` or, to check out the latest version,
-`Pkg.checkout("NetworkLearning.jl")` in the Julia REPL.
+`Pkg.checkout("NetworkLearning.jl")` in the Julia REPL. From `v0.1.0`, only versions of Julia above 0.7 
+are supported. Julia v.0.6 support can be found in the `support_julia_v0.6` branch (currently unmantained).
 
 
 
