@@ -17,10 +17,10 @@ mutable struct NetworkLearnerObs{T,U,S,V,
 	RL::R											# relational learner
 	Ci::C											# collective inferer	
 	Adj::A											# adjacency information
-	use_local_data::Bool									# whether to use local data
-	target_enc::L										# target encoding
-	size_in::Int										# expected input dimensionality
-	size_out::Int										# expected output dimensionality
+	use_local_data::Bool							# whether to use local data
+	target_enc::L									# target encoding
+	size_in::Int									# expected input dimensionality
+	size_out::Int									# expected output dimensionality
 	obsdim::OD										# observation dimension
 end
 

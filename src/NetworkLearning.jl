@@ -1,5 +1,5 @@
 # Network Learning
-VERSION >= v"0.6" && __precompile__(true)
+__precompile__(true)
 
 """
 NetworkLearning implements a generic framework for network classification. It could in theory be used for other functionality such as regression and density estimation,
