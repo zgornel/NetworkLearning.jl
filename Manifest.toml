@@ -1,17 +1,17 @@
 [[Arpack]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "ffc099065b47835213386df346e4a8b807c320cd"
+git-tree-sha1 = "5b046410fb617d9cf2f8bc0edd5da05a2e5a2ad4"
 uuid = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
-version = "0.2.2"
+version = "0.2.3"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BinaryProvider]]
 deps = ["Libdl", "Pkg", "SHA", "Test"]
-git-tree-sha1 = "ffbf89cc49b073cffdb91381b7ee60557a03ec96"
+git-tree-sha1 = "b530fbeb6f41ab5a83fbe3db1fcbe879334bcd2d"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.4.1"
+version = "0.4.2"
 
 [[CodecZlib]]
 deps = ["BinaryProvider", "Libdl", "Pkg", "Test", "TranscodingStreams"]
@@ -21,9 +21,9 @@ version = "0.5.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "277d3807440d9793421354b6680911fc95d91a84"
+git-tree-sha1 = "ae262fa91da6a74e8937add6b613f58cd56cdad4"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "1.0.1"
+version = "1.1.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "REPL", "Random", "Serialization", "Test"]
@@ -71,9 +71,9 @@ uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [[LightGraphs]]
 deps = ["Arpack", "Base64", "CodecZlib", "DataStructures", "DelimitedFiles", "Distributed", "LinearAlgebra", "Markdown", "Pkg", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "84e93cd3d4982952ddb27d2ace9433a74b78705a"
+git-tree-sha1 = "fd35b52d1e347e71dfec1e2bf5dbc7d5a46db8ec"
 uuid = "093fc24a-ae57-5d10-9952-331d41423f4d"
-version = "1.0.0"
+version = "1.0.2"
 
 [[LinearAlgebra]]
 deps = ["Libdl"]
@@ -83,8 +83,8 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[MLDataPattern]]
-deps = ["LearnBase", "MLLabelUtils", "ShowItLikeYouBuildIt", "SparseArrays", "StatsBase", "Test"]
-git-tree-sha1 = "eae31e0b5d2963e0f5b90f615c7a1a3f806777fc"
+deps = ["LearnBase", "MLLabelUtils", "Random", "SparseArrays", "StatsBase", "Test"]
+git-tree-sha1 = "e62221819c86de1affc5026cc099214ba51e125e"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaML/MLDataPattern.jl.git"
 uuid = "9920b226-0b2a-5f5f-9153-9aa70a013f8b"
@@ -147,11 +147,6 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
 uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
-[[ShowItLikeYouBuildIt]]
-git-tree-sha1 = "e562bce4b0df3ed65562ce2ec7f56cb399368daf"
-uuid = "9966252f-7483-59e3-9a4c-8607a6b2a5fe"
-version = "0.2.0"
-
 [[SimpleTraits]]
 deps = ["InteractiveUtils", "MacroTools", "Pkg", "Test"]
 git-tree-sha1 = "c0a542b8d5e369b179ccd296b2ca987f6da5da0a"
@@ -160,9 +155,9 @@ version = "0.8.0"
 
 [[SimpleWeightedGraphs]]
 deps = ["LightGraphs", "LinearAlgebra", "Markdown", "Pkg", "SparseArrays", "Test"]
-git-tree-sha1 = "5ade57a647278f826ebf093b9d07c58a178628f5"
+git-tree-sha1 = "4a676581419883275ba0f649bc11faa61937ffc4"
 uuid = "47aef6b3-ad0c-573a-a1e2-d07658019622"
-version = "0.5.0"
+version = "1.0.0"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
@@ -193,9 +188,9 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[TranscodingStreams]]
 deps = ["DelimitedFiles", "Pkg", "Random", "Test"]
-git-tree-sha1 = "a27b3a1b9c1120ef67b4647b80c61a16c09b9218"
+git-tree-sha1 = "a34a2d588e2d2825602bf14a24216d5c8b0921ec"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.8.0"
+version = "0.8.1"
 
 [[UUIDs]]
 deps = ["Random"]
