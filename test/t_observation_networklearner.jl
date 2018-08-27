@@ -39,12 +39,12 @@ for infopt in inferences
 		Test.@test try
 			# Train NetworkLearner
 			nlmodel=fit(NetworkLearnerObs, X, y, 
-			       adv, fl_train, fl_exec,fr_train,fr_exec;
-			       learner=rlopt, 
-			       inference=infopt,
-			       use_local_data=rand(Bool),
-			       f_targets=ft,
-			       normalize=false, maxiter = 5
+				   adv, fl_train, fl_exec,fr_train,fr_exec;
+				   learner=rlopt, 
+				   inference=infopt,
+				   use_local_data=rand(Bool),
+				   f_targets=ft,
+				   normalize=false, maxiter = 5
 			)
 
 			# Test NetworkLearner
@@ -92,13 +92,13 @@ for infopt in inferences
 		Test.@test try
 			# Train NetworkLearner
 			nlmodel=fit(NetworkLearnerObs, X, y, 
-			       adv, fl_train, fl_exec,fr_train,fr_exec;
-			       learner=rlopt, 
-			       inference=infopt,
-			       use_local_data=rand(Bool),
-			       f_targets=ft,
-			       normalize=false, maxiter = 5,
-			       obsdim=1
+				   adv, fl_train, fl_exec,fr_train,fr_exec;
+				   learner=rlopt, 
+				   inference=infopt,
+				   use_local_data=rand(Bool),
+				   f_targets=ft,
+				   normalize=false, maxiter = 5,
+				   obsdim=1
 			)
 
 			# Test NetworkLearner

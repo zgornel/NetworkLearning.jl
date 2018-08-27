@@ -2,8 +2,9 @@ using LinearAlgebra
 using SparseArrays
 using NetworkLearning
 using LightGraphs: Graph, add_edge! 
-using SimpleWeightedGraphs.SimpleWeightedGraph
-using LearnBase:ObsDim, ObsDimension
+using SimpleWeightedGraphs: SimpleWeightedGraph
+using LearnBase: ObsDim, ObsDimension
+using Statistics: mean
 using Test
 using Future: copy!
 using DelimitedFiles: readdlm

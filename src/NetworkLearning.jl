@@ -17,6 +17,7 @@ module NetworkLearning
 	using LearnBase, MLDataPattern, MLLabelUtils
 	using LightGraphs, SimpleWeightedGraphs
 	using Random: shuffle!
+	using Statistics: mean
 	using DelimitedFiles: readdlm
 	using Future: copy!
 	
