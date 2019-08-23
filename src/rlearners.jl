@@ -240,7 +240,7 @@ function transform!(Xr::T, Rl::ClassDistributionRNColumnMajor, Am::M, X::S, ŷ:
 	Xtmp = X*Am
 	Xtmp ./= clamp!(sum(Am, dims=1),1.0,Inf)# normalize to edge weight sum
 		
-	Distances.pairwise!(Xr, d, Rl.RV, Xtmp)	
+	Distances.pairwise!(Xr, d, Rl.RV, Xtmp, dims=2)
 	
 	if Rl.normalize				# normalize estimates / observation
 		Xr ./= sum(Xr.+eps(), dims=1)
@@ -254,7 +254,7 @@ function transform!(Xr::T, Rl::ClassDistributionRNRowMajor, Am::M, X::S, ŷ::U)
 	d = Distances.Euclidean()
 	Xtmp = transpose(Am) * X
 	Xtmp ./= clamp!(vec(sum(Am, dims=1)),1.0,Inf)	# normalize to edge weight sum
-	Xtmp = Distances.pairwise(d, Rl.RV, Xtmp')	
+    Xtmp = Distances.pairwise(d, Rl.RV, Xtmp', dims=2)
 	
 	Xr[:] = Xtmp'
 	if Rl.normalize				# normalize estimates / observation
